@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHAM — Privacy Policy</title>
+<meta name="description" content="Privacy policy for the WHAM gym-tracking app.">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ECEDE9;
+      --bg-elevated: #F6F5F1;
+      --text: #1E1B16;
+      --text-muted: #6B6255;
+      --accent: #A8791F;
+      --accent-soft: rgba(168, 121, 31, 0.10);
+      --rule: #D8D2C4;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+
+  .page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 6rem;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.4rem;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+    line-height: 1.15;
+    margin: 0 0 0.9rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .updated {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 2.2rem;
+  }
+
+  .meta-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1.1rem 1.3rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.45rem 1rem;
+    font-size: 0.92rem;
+    margin-bottom: 2.6rem;
+  }
+  .meta-panel dt {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    align-self: center;
+  }
+  .meta-panel dd {
+    margin: 0;
+  }
+  .meta-panel a { color: var(--text); text-decoration-color: var(--accent); }
+
+  .intro {
+    font-size: 1.02rem;
+    color: var(--text);
+    max-width: 60ch;
+    margin: 0 0 2.8rem;
+  }
+
+  nav.toc {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.1rem 0;
+    margin-bottom: 3.2rem;
+  }
+  nav.toc .toc-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.7rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2;
+    column-gap: 2rem;
+    counter-reset: toc;
+  }
+  nav.toc li {
+    counter-increment: toc;
+    font-size: 0.88rem;
+    break-inside: avoid;
+    margin-bottom: 0.45rem;
+  }
+  nav.toc li::before {
+    content: counter(toc, decimal-leading-zero) "  ";
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8rem;
+  }
+  nav.toc a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible {
+    color: var(--accent);
+  }
+
+  section {
+    padding-top: 2.6rem;
+    border-top: 1px solid var(--rule);
+    scroll-margin-top: 1.5rem;
+  }
+  section:first-of-type { border-top: none; padding-top: 0; }
+  section + section { margin-top: 0; }
+  main > section { margin-bottom: 0; }
+
+  h2 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: 1.32rem;
+    margin: 0 0 1.1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  h2 .num {
+    color: var(--accent);
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+
+  h3 {
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--text);
+  }
+
+  p { margin: 0 0 1rem; max-width: 62ch; }
+  ul { margin: 0 0 1rem; padding-left: 1.2rem; max-width: 60ch; }
+  li { margin-bottom: 0.4rem; }
+  li::marker { color: var(--accent); }
+
+  .note {
+    background: var(--accent-soft);
+    border-left: 2px solid var(--accent);
+    padding: 0.8rem 1rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin: 1rem 0;
+    max-width: 60ch;
+  }
+  .note strong { color: var(--text); }
+
+  .fill {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  a { color: var(--accent); }
+
+  @media (max-width: 520px) {
+    nav.toc ol { columns: 1; }
+    .meta-panel { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">WHAM</div>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated August 23, 2026</p>
+
+  <dl class="meta-panel">
+    <dt>Data controller</dt>
+    <dd>Liam Tyndale</dd>
+    <dt>Contact</dt>
+    <dd><a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a></dd>
+  </dl>
+
+  <p class="intro">WHAM ("we," "us," "our") provides this app to help you track workouts and connect with friends. This policy explains what data we collect, why, and how it's handled.</p>
+
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-label">Contents</div>
+    <ol>
+      <li><a href="#collect">What we collect</a></li>
+      <li><a href="#not-collect">What we do not do</a></li>
+      <li><a href="#storage">How data is stored and secured</a></li>
+      <li><a href="#third-party">Third-party services</a></li>
+      <li><a href="#subscriptions">Subscriptions and advertising</a></li>
+      <li><a href="#moderation">Community content and moderation</a></li>
+      <li><a href="#rights">Your rights and controls</a></li>
+      <li><a href="#children">Children's privacy</a></li>
+      <li><a href="#changes">Changes to this policy</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="collect">
+      <h2><span class="num">01</span> What we collect</h2>
+
+      <h3>Account data</h3>
+      <ul>
+        <li>Email address (used for authentication and account recovery).</li>
+        <li>If you sign in with Apple, we receive the identifier Apple provides for that sign-in; we do not receive your Apple ID password.</li>
+        <li>We do not collect your real name unless you choose to add one to your profile.</li>
+      </ul>
+
+      <h3>Workout data</h3>
+      <ul>
+        <li>Exercises logged, sets, reps, weights, session dates and duration, personal bests, and training streaks.</li>
+        <li>This data is used to power your training history, PB detection, and progress stats. It's stored so it's available across devices you sign into.</li>
+      </ul>
+
+      <h3>Health &amp; fitness data (optional, Apple Health)</h3>
+      <ul>
+        <li>If you choose to connect Apple Health (a separate, explicit permission prompt — off by default), we read your heart rate and active energy (calories) for the duration of a logged workout, to enrich your post-workout recap with real numbers instead of an estimate.</li>
+        <li>This is read-only: we never write anything back to Apple Health.</li>
+        <li>This data stays on your device — it's stored locally alongside your workout and is never sent to our servers or any third party.</li>
+        <li>If you don't connect Apple Health, calories are estimated from your bodyweight and workout duration instead.</li>
+      </ul>
+
+      <h3>Location (optional, one-time)</h3>
+      <ul>
+        <li>If you tap "Detect my gym," we ask iOS for your device's current location a single time to match you against a community-built list of gyms. We never request background or "Always" location access, and we never track your location passively.</li>
+        <li>That single location reading is used on your device to find nearby gyms and is not itself transmitted to our servers.</li>
+        <li>If your gym isn't already on the list and you choose to add it, the coordinates for that new gym are saved to our servers and become part of the shared community gym list — visible to other WHAM users searching for that gym, the same way any community-contributed gym listing is. Don't add a gym at a location you don't want associated with that gym's public listing.</li>
+      </ul>
+
+      <h3>Contacts (optional)</h3>
+      <ul>
+        <li>If you allow contacts access to find friends already using WHAM, phone numbers from your contacts are hashed on your device before anything is sent — we only ever transmit and store the hashes, never the plaintext numbers themselves, and matching happens by comparing hashes.</li>
+        <li>This is a real privacy improvement over sending raw numbers, but hashes of low-entropy data like phone numbers aren't a cryptographic guarantee against a determined, direct-database-access attacker — treat it as meaningfully better than plaintext, not unbreakable.</li>
+      </ul>
+
+      <h3>Photos and videos (optional)</h3>
+      <ul>
+        <li><strong>Profile picture:</strong> if you set one, it's stored in a public bucket and visible to anyone who can see your profile.</li>
+        <li><strong>Post attachments:</strong> a photo or video you choose to attach to a feed post is stored privately and served only via short-lived signed links to people who can see that post.</li>
+        <li><strong>Progress photos/videos:</strong> before/after clips you record for your own progress tracking are stored privately, visible only to you.</li>
+      </ul>
+
+      <h3>Voice input (optional)</h3>
+      <ul>
+        <li>If you tap the mic to log a set by voice, WHAM uses iOS's built-in Speech Recognition. Depending on your device and settings, iOS may process that audio on-device or send it to Apple's own servers for transcription — that's governed by Apple's own privacy practices, not ours.</li>
+        <li>WHAM itself never stores or transmits your raw voice audio anywhere. We only use the transcribed text, locally, to fill in a set's weight and reps.</li>
+      </ul>
+
+      <h3>Social and friend data</h3>
+      <ul>
+        <li>Friend connections you create within the app.</li>
+        <li>Content you choose to share to your activity feed (sessions, PBs, achievements).</li>
+        <li>Leaderboard participation (weekly volume/strength rankings visible to friends, if you opt in).</li>
+        <li>Privacy controls let you decide what's visible to friends vs. kept private.</li>
+      </ul>
+
+      <h3>Diagnostics and product analytics</h3>
+      <ul>
+        <li>We use Sentry to capture crash and error reports, so we can find and fix bugs. Reports are tagged with an internal account ID, never your email — and are automatically screened to strip anything that looks like Apple Health data (heart rate, calories) or another user's identifiers before being sent.</li>
+        <li>We use PostHog to understand how the app is used in aggregate (e.g. which features get used, how often), tied to your internal account ID when you're signed in. These events are plain counts and app-usage facts (like session count or workout duration) — never your email, name, or any Apple Health data.</li>
+        <li>Neither tool is used for advertising, and neither ever receives your email or Apple Health data — see <a href="#not-collect">What we do not do</a>.</li>
+      </ul>
+
+      <h3>Technical data</h3>
+      <ul>
+        <li>Basic device information used only to keep the app reliable.</li>
+      </ul>
+    </section>
+
+    <section id="not-collect">
+      <h2><span class="num">02</span> What we do not do</h2>
+      <ul>
+        <li>We never track your location in the background or ask for "Always" location access — see <a href="#collect">Location</a> above for the one-time, on-demand lookup we do use.</li>
+        <li>We do not collect Apple Health data unless you explicitly connect it, and even then only heart rate and active energy for your logged workouts, kept on your device only — nothing else from Health is read or written, and none of it is sent to us or anyone else.</li>
+        <li>We do not sell your data to third parties.</li>
+        <li>As of this version, WHAM shows no ads and shares no data with any ad network — see <a href="#subscriptions">Subscriptions and Advertising</a> for what's planned.</li>
+        <li>Our analytics and crash reporting (see <a href="#collect">Diagnostics and product analytics</a>) never receive your email, real name, or any Apple Health data — by construction, not just policy: the code that talks to those tools doesn't accept those fields as input.</li>
+      </ul>
+    </section>
+
+    <section id="storage">
+      <h2><span class="num">03</span> How data is stored and secured</h2>
+      <p>Data is stored using Supabase (PostgreSQL), a third-party infrastructure provider, with row-level security policies restricting access so that only you can read your private data, and only accepted friends can see data you've explicitly shared. Photos and videos you attach to posts or progress logs are stored in private buckets served only through short-lived signed links, not public URLs. All traffic between the app and our servers is encrypted in transit (HTTPS/TLS).</p>
+    </section>
+
+    <section id="third-party">
+      <h2><span class="num">04</span> Third-party services</h2>
+      <p>WHAM uses the following third-party service providers to operate:</p>
+      <ul>
+        <li>Supabase (database, authentication, file storage)</li>
+        <li>Apple HealthKit (only if you explicitly connect it — data is read directly from your device, not from an Apple server, and stays on your device)</li>
+        <li>Apple Speech Recognition (only if you use voice logging — processes your spoken words into text per Apple's own privacy practices; see <a href="#collect">Voice input</a>)</li>
+        <li>Giphy (powers GIF search/sharing in the social feed — search terms you enter are sent to Giphy to return results; no account or personal identifiers are sent alongside them)</li>
+        <li>Sentry (crash and error reporting; see <a href="#collect">Diagnostics and product analytics</a>)</li>
+        <li>PostHog (product usage analytics; see <a href="#collect">Diagnostics and product analytics</a>)</li>
+        <li>Expo/EAS (app build and update delivery infrastructure)</li>
+      </ul>
+      <p>Each of these providers only receives the data necessary to perform their function and is bound by their own privacy and security terms.</p>
+    </section>
+
+    <section id="subscriptions">
+      <h2><span class="num">05</span> Subscriptions and advertising <span style="color:var(--text-muted); font-size:0.7rem; font-family:-apple-system,sans-serif; letter-spacing:0.06em; text-transform:uppercase;">planned</span></h2>
+      <p>The base app is, and will remain, free to use. We plan to introduce an optional premium subscription and an ad-supported free tier in a future update.</p>
+      <ul>
+        <li>Subscriptions will be handled entirely through Apple's In-App Purchase system. We receive confirmation of your subscription and its status, but never your payment details — Apple handles billing directly.</li>
+        <li>Ads, when introduced, will be served by a third-party ad network (<span class="fill">named here once chosen</span>). If that network uses your device's advertising identifier to personalize ads or track you across apps, we'll ask your permission first via Apple's App Tracking Transparency prompt, as required.</li>
+      </ul>
+      <div class="note"><strong>Note:</strong> this section will be filled in with specifics — and this policy re-reviewed — before either feature ships in a released version of the app, not simply announced after the fact.</div>
+    </section>
+
+    <section id="moderation">
+      <h2><span class="num">06</span> Community content and moderation</h2>
+      <p>WHAM's activity feed lets you share workouts and see friends' activity. We have zero tolerance for objectionable content or abusive behavior.</p>
+      <ul>
+        <li>Any post can be reported directly from the feed.</li>
+        <li>Any user can be blocked directly from the feed, which immediately hides their content from you.</li>
+        <li>Reports are reviewed and acted on, which may include content removal or account restriction.</li>
+      </ul>
+      <p>Contact us at the address above to report anything our in-app tools don't cover.</p>
+    </section>
+
+    <section id="rights">
+      <h2><span class="num">07</span> Your rights and controls</h2>
+      <ul>
+        <li>You can edit or delete workout data within the app at any time.</li>
+        <li>You can remove friend connections and control what's visible on your feed and leaderboards.</li>
+        <li>You can delete your account at any time from within the app (Settings → Account → Delete account). This immediately and permanently removes your account, workout history, and social connections from our systems — there's no waiting period and no need to contact support.</li>
+        <li>You can request a copy of your data by contacting us at the address above.</li>
+      </ul>
+    </section>
+
+    <section id="children">
+      <h2><span class="num">08</span> Children's privacy</h2>
+      <p>WHAM is not directed at children under 13 (or the minimum age required in your territory), and we do not knowingly collect data from children under this age.</p>
+    </section>
+
+    <section id="changes">
+      <h2><span class="num">09</span> Changes to this policy</h2>
+      <p>We may update this policy as the app evolves. Material changes will be reflected here with an updated "Last updated" date.</p>
+    </section>
+
+    <section id="contact">
+      <h2><span class="num">10</span> Contact</h2>
+      <p>Questions about this policy or your data: <a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <span>WHAM — Privacy Policy</span>
+    <a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a>
+  </footer>
+</div>
+</body>
+</html>

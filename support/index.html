@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHAM — Support</title>
+<meta name="description" content="Support and FAQ for the WHAM gym-tracking app.">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ECEDE9;
+      --bg-elevated: #F6F5F1;
+      --text: #1E1B16;
+      --text-muted: #6B6255;
+      --accent: #A8791F;
+      --accent-soft: rgba(168, 121, 31, 0.10);
+      --rule: #D8D2C4;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+
+  .page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 6rem;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.4rem;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+    line-height: 1.15;
+    margin: 0 0 0.9rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .intro {
+    font-size: 1.02rem;
+    color: var(--text);
+    max-width: 60ch;
+    margin: 0 0 2.8rem;
+  }
+
+  .contact-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1.3rem 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .contact-panel dt {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+  .contact-panel dd {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+  }
+  .contact-panel dd:last-child { margin-bottom: 0; }
+  .contact-panel a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .contact-panel a:hover { text-decoration: underline; }
+  .contact-panel .reply-note { color: var(--text-muted); font-size: 0.85rem; font-weight: 400; }
+
+  section {
+    padding-top: 2.4rem;
+    border-top: 1px solid var(--rule);
+    scroll-margin-top: 1.5rem;
+  }
+  section:first-of-type { border-top: none; padding-top: 0; }
+
+  h2 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: 1.28rem;
+    margin: 0 0 1rem;
+  }
+
+  h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 1.4rem 0 0.4rem;
+  }
+
+  p { margin: 0 0 1rem; max-width: 62ch; }
+  ul { margin: 0 0 1rem; padding-left: 1.2rem; max-width: 60ch; }
+  li { margin-bottom: 0.5rem; }
+  li::marker { color: var(--accent); }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">WHAM</div>
+  <h1>Support</h1>
+  <p class="intro">Questions, bug reports, or anything not covered below — we read every message.</p>
+
+  <dl class="contact-panel">
+    <dt>Email</dt>
+    <dd><a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a><br><span class="reply-note">We aim to reply within a few days.</span></dd>
+  </dl>
+
+  <section id="faq">
+    <h2>Common questions</h2>
+
+    <h3>How do I delete my account?</h3>
+    <p>Settings → Account → Delete account. This immediately and permanently removes your account, workout history, and social connections — no waiting period, no need to email us first.</p>
+
+    <h3>How do I report a post or block someone?</h3>
+    <p>Any post in the feed can be reported directly from its own menu. Blocking a user immediately hides their content from you. Anything our in-app tools don't cover, email us at the address above.</p>
+
+    <h3>How do I delete or leave a chat?</h3>
+    <p>Long-press a conversation to delete it, or a group conversation to leave it.</p>
+
+    <h3>Does WHAM work without an account?</h3>
+    <p>Yes — logging workouts, viewing your training history and stats all work fully offline, with no account needed. Signing in (via the Feed tab) is only required for syncing across devices and social features like friends, feed, and challenges.</p>
+
+    <h3>Does WHAM use my Apple Health data?</h3>
+    <p>Only if you explicitly connect it in Settings. We read heart rate and active energy for a logged workout to enrich your recap — read-only, and it never leaves your device. See our <a href="/privacy">Privacy Policy</a> for the full detail.</p>
+
+    <h3>Something's not working — what should I include in a report?</h3>
+    <p>The more specific, the faster we can fix it: what you were doing, what you expected, what happened instead, and your device model/iOS version if you know it. A screenshot or screen recording helps enormously.</p>
+  </section>
+
+  <footer>
+    <span>WHAM — Support</span>
+    <a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHAM</title>
+<meta name="description" content="WHAM — an isometric gym floor for tracking your workouts.">
+<style>
+  :root {
+    --bg: #14110D;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --rule: #332A1E;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ECEDE9;
+      --text: #1E1B16;
+      --text-muted: #6B6255;
+      --accent: #A8791F;
+      --rule: #D8D2C4;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  .card { max-width: 420px; }
+  h1 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: 2.4rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.6rem;
+  }
+  p { color: var(--text-muted); margin: 0 0 2rem; line-height: 1.6; }
+  nav {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+  a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>WHAM</h1>
+    <p>Your gym floor, tracked.</p>
+    <nav>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/support">Support</a>
+    </nav>
+  </div>
+</body>
+</html>
