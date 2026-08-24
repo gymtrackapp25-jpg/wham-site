@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHAM — Terms of Service</title>
+<meta name="description" content="Terms of Service for the WHAM gym-tracking app.">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ECEDE9;
+      --bg-elevated: #F6F5F1;
+      --text: #1E1B16;
+      --text-muted: #6B6255;
+      --accent: #A8791F;
+      --accent-soft: rgba(168, 121, 31, 0.10);
+      --rule: #D8D2C4;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+
+  .page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 6rem;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.4rem;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(2rem, 4.5vw, 2.6rem);
+    line-height: 1.15;
+    margin: 0 0 0.9rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .updated {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 2.2rem;
+  }
+
+  .meta-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1.1rem 1.3rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.45rem 1rem;
+    font-size: 0.92rem;
+    margin-bottom: 2.6rem;
+  }
+  .meta-panel dt {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    align-self: center;
+  }
+  .meta-panel dd {
+    margin: 0;
+  }
+  .meta-panel a { color: var(--text); text-decoration-color: var(--accent); }
+
+  .intro {
+    font-size: 1.02rem;
+    color: var(--text);
+    max-width: 60ch;
+    margin: 0 0 2.8rem;
+  }
+
+  nav.toc {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.1rem 0;
+    margin-bottom: 3.2rem;
+  }
+  nav.toc .toc-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.7rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2;
+    column-gap: 2rem;
+    counter-reset: toc;
+  }
+  nav.toc li {
+    counter-increment: toc;
+    font-size: 0.88rem;
+    break-inside: avoid;
+    margin-bottom: 0.45rem;
+  }
+  nav.toc li::before {
+    content: counter(toc, decimal-leading-zero) "  ";
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8rem;
+  }
+  nav.toc a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible {
+    color: var(--accent);
+  }
+
+  section {
+    padding-top: 2.6rem;
+    border-top: 1px solid var(--rule);
+    scroll-margin-top: 1.5rem;
+  }
+  section:first-of-type { border-top: none; padding-top: 0; }
+  section + section { margin-top: 0; }
+  main > section { margin-bottom: 0; }
+
+  h2 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: 1.32rem;
+    margin: 0 0 1.1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  h2 .num {
+    color: var(--accent);
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+
+  h3 {
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--text);
+  }
+
+  p { margin: 0 0 1rem; max-width: 62ch; }
+  ul { margin: 0 0 1rem; padding-left: 1.2rem; max-width: 60ch; }
+  li { margin-bottom: 0.4rem; }
+  li::marker { color: var(--accent); }
+
+  .note {
+    background: var(--accent-soft);
+    border-left: 2px solid var(--accent);
+    padding: 0.8rem 1rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin: 1rem 0;
+    max-width: 60ch;
+  }
+  .note strong { color: var(--text); }
+
+  .warn {
+    background: rgba(191, 91, 91, 0.12);
+    border-left: 2px solid #BF5B5B;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin: 1rem 0 1.4rem;
+    max-width: 60ch;
+    font-weight: 600;
+  }
+
+  .fill {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  a { color: var(--accent); }
+
+  @media (max-width: 520px) {
+    nav.toc ol { columns: 1; }
+    .meta-panel { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">WHAM</div>
+  <h1>Terms of Service</h1>
+  <p class="updated">Last updated August 24, 2026</p>
+
+  <dl class="meta-panel">
+    <dt>Provided by</dt>
+    <dd>Liam Tyndale</dd>
+    <dt>Contact</dt>
+    <dd><a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a></dd>
+  </dl>
+
+  <p class="intro">These Terms of Service ("Terms") govern your use of WHAM (the "App," "we," "us," "our"). By creating an account or using the App, you agree to these Terms. If you don't agree, don't use the App.</p>
+
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-label">Contents</div>
+    <ol>
+      <li><a href="#eligibility">Eligibility</a></li>
+      <li><a href="#account">Your account</a></li>
+      <li><a href="#service">The service</a></li>
+      <li><a href="#content">Your content, and the rules for using it</a></li>
+      <li><a href="#moderation">Moderation, reporting, and blocking</a></li>
+      <li><a href="#copyright">Copyright (DMCA / UK hosting defence)</a></li>
+      <li><a href="#health">Health and fitness disclaimer</a></li>
+      <li><a href="#subscriptions">Subscriptions and purchases</a></li>
+      <li><a href="#ip">Our intellectual property</a></li>
+      <li><a href="#third-party">Third-party services</a></li>
+      <li><a href="#disclaimer">Disclaimer of warranties</a></li>
+      <li><a href="#liability">Limitation of liability</a></li>
+      <li><a href="#indemnity">Indemnification</a></li>
+      <li><a href="#disputes">Disputes: arbitration and class action waiver</a></li>
+      <li><a href="#law">Governing law</a></li>
+      <li><a href="#termination">Termination</a></li>
+      <li><a href="#changes">Changes to these Terms</a></li>
+      <li><a href="#misc">Miscellaneous</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="eligibility">
+      <h2><span class="num">01</span> Eligibility</h2>
+      <p>You must be at least 13 years old (or the minimum age required in your territory) to use WHAM. If you're under 18, you need a parent or guardian's permission. By using the App, you confirm you meet these requirements.</p>
+    </section>
+
+    <section id="account">
+      <h2><span class="num">02</span> Your account</h2>
+      <ul>
+        <li>You're responsible for keeping your account credentials secure and for anything that happens under your account.</li>
+        <li>You can delete your account at any time from within the App (Settings → Account → Delete account) — see our <a href="/privacy">Privacy Policy</a> for exactly what that removes.</li>
+        <li>We can suspend or terminate an account that violates these Terms — see <a href="#termination">Termination</a>.</li>
+      </ul>
+    </section>
+
+    <section id="service">
+      <h2><span class="num">03</span> The service</h2>
+      <p>WHAM is a workout-tracking app: logging exercises, sets, and reps; a visual gym-floor interface; progress and strength stats; and optional social features (friends, an activity feed, direct and group messages, challenges, and topic forums). Core logging and history work fully offline; social features and cross-device sync require an account and a connection.</p>
+      <p>We may add, change, or remove features over time, including ones you rely on. We'll try not to do that abruptly for anything central to the App, but we don't promise any specific feature will exist forever.</p>
+    </section>
+
+    <section id="content">
+      <h2><span class="num">04</span> Your content, and the rules for using it</h2>
+      <h3>It's still yours</h3>
+      <p>Anything you post, upload, or log — workout data, photos, videos, comments, messages, profile info — is yours. By posting or sharing anything visible to others (a feed post, a comment, a shared profile picture), you grant us a worldwide, non-exclusive, royalty-free license to host, store, display, and distribute it within the App, solely to operate and provide the service to you and the people you've shared it with. That license ends when you delete the content or your account, except where a copy reasonably persists for a short time in backups.</p>
+      <h3>What you can't do</h3>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Post content that's illegal, harassing, hateful, sexually explicit involving minors, or that infringes someone else's rights (including copyright — see <a href="#copyright">Copyright</a>).</li>
+        <li>Impersonate someone else, or misrepresent your affiliation with a person or entity.</li>
+        <li>Harass, bully, or threaten other users.</li>
+        <li>Attempt to access another user's account, or the App's backend systems, without authorization.</li>
+        <li>Scrape, reverse-engineer, or use automated means to access the App outside its normal interfaces.</li>
+        <li>Use the App to spam, defraud, or upload malware.</li>
+      </ul>
+      <p>We have zero tolerance for objectionable content or abusive behavior — see the next section for how that's enforced.</p>
+    </section>
+
+    <section id="moderation">
+      <h2><span class="num">05</span> Moderation, reporting, and blocking</h2>
+      <ul>
+        <li>Any post or comment can be reported directly from the feed.</li>
+        <li>Any user can be blocked directly, which immediately hides their content from you.</li>
+        <li>We review reports and may remove content, restrict a feature, or suspend or terminate an account that violates these Terms — at our discretion, and without prior notice for serious violations.</li>
+        <li>If our in-app tools don't cover something, contact us at the address in <a href="#contact">Contact</a>.</li>
+      </ul>
+    </section>
+
+    <section id="copyright">
+      <h2><span class="num">06</span> Copyright (DMCA / UK hosting defence)</h2>
+      <p>We respect intellectual property rights and expect users to do the same.</p>
+      <h3>United States — DMCA</h3>
+      <p>If you believe content on WHAM infringes your copyright, send a notice to our designated agent with: (1) a description of the copyrighted work; (2) the location of the material in the App; (3) your contact details; (4) a statement that you have a good-faith belief the use is unauthorized; and (5) a statement, under penalty of perjury, that the notice is accurate and you're authorized to act on the copyright owner's behalf.</p>
+      <p class="note"><strong>Designated DMCA agent:</strong> <a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a> — registered with the U.S. Copyright Office's DMCA Designated Agent Directory.</p>
+      <h3>United Kingdom / EU</h3>
+      <p>For users and rights holders outside the US: we operate a notice-and-takedown process consistent with the hosting defence under the UK's Electronic Commerce (EC Directive) Regulations 2002 (and the equivalent EU e-Commerce framework) — once we have actual knowledge of infringing content, we act promptly to remove or disable access to it. Send notices to the same address above.</p>
+      <p>We may remove content and, for repeat infringement, terminate the responsible account.</p>
+    </section>
+
+    <section id="health">
+      <h2><span class="num">07</span> Health and fitness disclaimer</h2>
+      <div class="warn">WHAM is not a medical device and does not provide medical advice. Talk to a physician before starting any exercise program, especially if you have an existing health condition.</div>
+      <ul>
+        <li>Exercise carries inherent risk of injury. Weight, rep, and calorie figures — including anything derived from Apple Health — are estimates for your own reference, not clinical measurements.</li>
+        <li>You use the App, and act on anything it shows you, entirely at your own risk. You're responsible for exercising within your own physical limits and for stopping if something feels wrong.</li>
+        <li>Content posted by other users (including anything shared to the feed or in messages) is their opinion, not advice we've reviewed or endorsed.</li>
+      </ul>
+    </section>
+
+    <section id="subscriptions">
+      <h2><span class="num">08</span> Subscriptions and purchases <span style="color:var(--text-muted); font-size:0.7rem; font-family:-apple-system,sans-serif; letter-spacing:0.06em; text-transform:uppercase;">planned</span></h2>
+      <p>The base App is, and will remain, free to use. We plan to introduce an optional premium subscription in a future update. When that ships:</p>
+      <ul>
+        <li>Purchases are handled entirely through Apple's In-App Purchase system, billed to your Apple ID — we never see or store your payment details.</li>
+        <li>A subscription auto-renews unless canceled at least 24 hours before the end of the current period, per Apple's standard terms. Manage or cancel it in your device's Settings → Apple ID → Subscriptions.</li>
+        <li>Refunds are handled by Apple under its own refund policy, not by us directly.</li>
+      </ul>
+    </section>
+
+    <section id="ip">
+      <h2><span class="num">09</span> Our intellectual property</h2>
+      <p>The App itself — its design, code, the WHAM name and logo, and everything we've created that isn't your content — belongs to us or our licensors. These Terms give you a personal, non-transferable, non-exclusive license to use the App for its intended purpose. You may not copy, modify, distribute, sell, or reverse-engineer any part of the App itself.</p>
+    </section>
+
+    <section id="third-party">
+      <h2><span class="num">10</span> Third-party services</h2>
+      <p>WHAM relies on third-party services to operate (Supabase, Apple HealthKit and Speech Recognition, Giphy, Sentry, PostHog, Apple's App Store) — see our <a href="/privacy">Privacy Policy</a> for what each one does and what data it sees. Those services have their own terms, which apply to your use of them where relevant.</p>
+    </section>
+
+    <section id="disclaimer">
+      <h2><span class="num">11</span> Disclaimer of warranties</h2>
+      <p>THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DON'T WARRANT THAT THE APP WILL BE UNINTERRUPTED, ERROR-FREE, OR THAT ANY DATA (INCLUDING YOUR LOGGED WORKOUTS) WILL NEVER BE LOST. Nothing in this section limits any consumer rights you have that can't be excluded under the law of your country of residence.</p>
+    </section>
+
+    <section id="liability">
+      <h2><span class="num">12</span> Limitation of liability</h2>
+      <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE ARE NOT LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE APP — INCLUDING ANY INJURY ARISING FROM EXERCISE UNDERTAKEN USING INFORMATION FROM THE APP (SEE <a href="#health">HEALTH AND FITNESS DISCLAIMER</a>). OUR TOTAL LIABILITY FOR ANY CLAIM RELATING TO THE APP IS LIMITED TO THE GREATER OF (A) THE AMOUNT YOU PAID US IN THE 12 MONTHS BEFORE THE CLAIM AROSE, OR (B) £50 / $50. This section doesn't limit liability that can't be limited under the law of your country of residence — including, in the UK/EU, liability for death or personal injury caused by negligence, or for fraud.</p>
+    </section>
+
+    <section id="indemnity">
+      <h2><span class="num">13</span> Indemnification</h2>
+      <p>You agree to defend and indemnify us against any claim arising from your violation of these Terms, your content, or your misuse of the App — except to the extent the claim arises from our own violation of these Terms or applicable law.</p>
+    </section>
+
+    <section id="disputes">
+      <h2><span class="num">14</span> Disputes: arbitration and class action waiver</h2>
+      <p><strong>This section doesn't apply to you if you're a consumer habitually resident in the UK or EU/EEA</strong> — for you, this section is void, and disputes are handled under <a href="#law">Governing Law</a> in the ordinary courts of your own country instead, as required by UK/EU consumer protection law.</p>
+      <p>For everyone else: any dispute arising from these Terms or the App will be resolved by binding individual arbitration, not in court, except that either party may bring an individual claim in small-claims court. There is no right or authority for any dispute to be brought as a class, consolidated, or representative action. You and we both waive any right to a jury trial.</p>
+      <p class="note"><strong>Opt out:</strong> you can opt out of this arbitration agreement by emailing <a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a> with your name and a clear statement that you're opting out, within 30 days of first agreeing to these Terms. Opting out doesn't affect any other part of these Terms.</p>
+    </section>
+
+    <section id="law">
+      <h2><span class="num">15</span> Governing law</h2>
+      <p>These Terms are governed by the laws of England and Wales, without regard to conflict-of-law principles — except that if you're a consumer, you also keep whatever protections the mandatory law of your own country of residence gives you, and nothing here removes your right to bring proceedings in your local courts where consumer law guarantees that right.</p>
+    </section>
+
+    <section id="termination">
+      <h2><span class="num">16</span> Termination</h2>
+      <p>You can stop using the App and delete your account at any time. We can suspend or terminate your access if you violate these Terms, or if we discontinue the App entirely (we'd try to give reasonable notice for the latter). Sections that by their nature should survive termination — <a href="#ip">Intellectual Property</a>, <a href="#disclaimer">Disclaimer of Warranties</a>, <a href="#liability">Limitation of Liability</a>, <a href="#indemnity">Indemnification</a>, and <a href="#disputes">Disputes</a> — do.</p>
+    </section>
+
+    <section id="changes">
+      <h2><span class="num">17</span> Changes to these Terms</h2>
+      <p>We may update these Terms as the App evolves. Material changes will be reflected here with an updated "Last updated" date, and where practical we'll flag significant changes in-app. Continuing to use the App after a change means you accept the update.</p>
+    </section>
+
+    <section id="misc">
+      <h2><span class="num">18</span> Miscellaneous</h2>
+      <ul>
+        <li>If any part of these Terms is found unenforceable, the rest stays in effect.</li>
+        <li>Our failure to enforce a provision isn't a waiver of it.</li>
+        <li>You can't transfer your rights under these Terms without our consent; we may transfer ours as part of a merger, acquisition, or sale of assets.</li>
+        <li>These Terms, together with our <a href="/privacy">Privacy Policy</a>, are the entire agreement between you and us about the App.</li>
+      </ul>
+    </section>
+
+    <section id="contact">
+      <h2><span class="num">19</span> Contact</h2>
+      <p>Questions about these Terms: <a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <span>WHAM — Terms of Service</span>
+    <a href="mailto:gymtrackapp25@gmail.com">gymtrackapp25@gmail.com</a>
+  </footer>
+</div>
+</body>
+</html>
