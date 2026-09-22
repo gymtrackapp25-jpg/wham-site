@@ -314,7 +314,7 @@
     <div class="qrwrap" id="o-qrwrap"><canvas id="o-qr" hidden></canvas></div>
     <div>
       <div class="ocode" id="o-code"></div>
-      <p class="osub" id="o-sub">or enter the code in WHAM &rarr; Settings &rarr; Gym league</p>
+      <p class="osub" id="o-sub">or enter the code in WHAM &rarr; Board</p>
     </div>
     <div class="ofoot">getwham.app</div>
   </section>
@@ -609,7 +609,7 @@
     if (code) {
       join.appendChild(document.createTextNode("Scan to join, or enter "));
       join.appendChild(el("b", null, code));
-      join.appendChild(document.createTextNode(" in WHAM → Settings → Gym league"));
+      join.appendChild(document.createTextNode(" in WHAM → Board"));
       join.appendChild(el("br"));
       join.appendChild(el("span", "url", SITE.replace(/^https?:\/\//, "") + "/join/?c=" + code));
     } else {
