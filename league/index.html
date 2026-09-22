@@ -74,6 +74,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    /* a flex child's min-width defaults to its content width, which
+       defeats the ellipsis — long gym names would push the meta off screen */
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .brand .dim { color: var(--text-muted); opacity: 0.6; }
   .meta {
@@ -585,7 +589,9 @@
           var row = el("div", "prow");
           row.appendChild(el("span", "rank", rankLabel(Number(r.rank) || 0)));
           row.appendChild(el("span", "name", r.display_name || "—"));
-          row.appendChild(el("span", "val", formatBoardValue(b.key, r.value, metric)));
+          /* a settled row carries the unit of ITS month's challenge; the live
+             board uses this month's */
+          row.appendChild(el("span", "val", formatBoardValue(b.key, r.value, r.metric || metric)));
           card.appendChild(row);
         });
       }
