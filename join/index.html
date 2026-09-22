@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Join the WHAM League</title>
+<meta name="description" content="Join your gym's WHAM League — scan the poster, open WHAM, and get on the board.">
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px 16px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    -webkit-font-smoothing: antialiased;
+  }
+  .card { width: 100%; max-width: 440px; }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 0.9rem;
+  }
+  h1 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(1.7rem, 7.5vw, 2.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+    overflow-wrap: anywhere;
+  }
+  h1 .dim { color: var(--text-muted); opacity: 0.6; }
+  .status {
+    color: var(--text-muted);
+    min-height: 1.6em;
+    line-height: 1.6;
+    margin: 0 0 1.8rem;
+  }
+  .status.warn { color: var(--accent); }
+  .actions { display: flex; flex-direction: column; gap: 12px; margin: 0 0 1.8rem; }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 1px solid var(--rule);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.985); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #14110D;
+    font-size: 1.15rem;
+  }
+  .hint { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0 0 0.6rem; }
+  .code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-indent: 0.22em; /* balance the trailing letter-spacing so it centres */
+    padding: 14px 8px;
+    border: 1px dashed var(--rule);
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    user-select: all;
+    -webkit-user-select: all;
+    margin: 0 0 1.8rem;
+  }
+  .lead { color: var(--text-muted); line-height: 1.6; margin: 0 0 1.8rem; font-size: 1.05rem; }
+  footer { padding-top: 1.2rem; border-top: 1px solid var(--rule); }
+  footer a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  footer a:hover { text-decoration: underline; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">WHAM League</p>
+
+    <!-- Valid code -->
+    <div id="valid" hidden>
+      <h1>The <span id="gym" class="dim">Gym</span> &times; WHAM League</h1>
+      <p id="status" class="status" aria-live="polite">Looking up your gym&hellip;</p>
+      <div class="actions">
+        <a id="open" class="btn primary" href="#">Open in WHAM</a>
+        <a id="store" class="btn" href="#">Get WHAM on the App Store</a>
+      </div>
+      <p class="hint">or enter this code in WHAM &rarr; Settings &rarr; Gym league</p>
+      <div id="code" class="code"></div>
+    </div>
+
+    <!-- Missing / malformed code -->
+    <div id="invalid" hidden>
+      <h1>WHAM League</h1>
+      <p class="lead">That link is missing its code &mdash; ask at the front desk.</p>
+      <div class="actions">
+        <a id="store2" class="btn" href="#">Get WHAM on the App Store</a>
+      </div>
+    </div>
+
+    <footer><a href="/">getwham.app</a></footer>
+  </main>
+
+<script>
+  // Placeholder until the App Store listing is live — swap this one constant.
+  var APP_STORE_URL = "https://getwham.app/";
+  // Public by design: RLS + RPC grants are the gate, the anon key is not a secret.
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+
+  // --- helpers (tested in isolation) ---
+  // Join codes: 6 chars from A-Z and 2-9 (no 0/1). Returns "" when not a code.
+  function normaliseCode(raw) {
+    var s = String(raw == null ? "" : raw).toUpperCase().replace(/[^A-Z2-9]/g, "");
+    return /^[A-Z2-9]{6}$/.test(s) ? s : "";
+  }
+  // Header reads "THE {NAME} × WHAM LEAGUE" — drop a leading "The" so
+  // "The Gym Group" doesn't become "THE THE GYM GROUP".
+  function displayGymName(name) {
+    return String(name || "").trim().replace(/^the\s+/i, "");
+  }
+  function memberLine(n) {
+    n = Number(n) || 0;
+    if (n === 0) return "Be the first on the board";
+    return n === 1 ? "1 member on the board" : n.toLocaleString("en-GB") + " members on the board";
+  }
+  // --- end helpers ---
+
+  (function () {
+    var code = normaliseCode(new URLSearchParams(location.search).get("c"));
+    document.getElementById("store").href = APP_STORE_URL;
+    document.getElementById("store2").href = APP_STORE_URL;
+
+    if (!code) {
+      document.getElementById("invalid").hidden = false;
+      return;
+    }
+
+    var valid = document.getElementById("valid");
+    var status = document.getElementById("status");
+    var gym = document.getElementById("gym");
+    document.getElementById("open").href = "wham://join/" + code;
+    document.getElementById("code").textContent = code;
+    valid.hidden = false;
+
+    fetch(SUPABASE_URL + "/rest/v1/rpc/league_public_lookup", {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: "Bearer " + SUPABASE_ANON,
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({ p_code: code })
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error("lookup " + r.status);
+        return r.json();
+      })
+      .then(function (rows) {
+        var row = Array.isArray(rows) && rows.length ? rows[0] : null;
+        if (!row) {
+          status.textContent = "This code isn’t active any more — ask at the front desk.";
+          status.className = "status warn";
+          return;
+        }
+        gym.textContent = displayGymName(row.name) || "Gym";
+        gym.className = "";
+        document.title = "Join the " + row.name + " × WHAM League";
+        status.textContent = memberLine(row.member_count);
+      })
+      .catch(function () {
+        status.textContent = "Couldn’t reach WHAM just now — the buttons still work.";
+        status.className = "status warn";
+      });
+  })();
+</script>
+</body>
+</html>

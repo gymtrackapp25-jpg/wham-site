@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHAM League</title>
+<meta name="description" content="Live WHAM League leaderboard for your gym.">
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  [hidden] { display: none !important; }
+  #tv, #print, #poster, #msg { display: none; }
+  body[data-view="tv"] { overflow: hidden; }
+  body[data-view="tv"] #tv { display: flex; }
+  body[data-view="print"] { background: #fff; }
+  body[data-view="print"] #print { display: flex; }
+  body[data-view="poster"] { overflow: hidden; }
+  body[data-view="poster"] #poster { display: flex; }
+  body[data-view="msg"] #msg { display: flex; }
+
+  /* ---------- message (no slug / unknown league / can't reach) ---------- */
+  #msg {
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px 16px;
+  }
+  #msg .card { max-width: 480px; }
+  #msg h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(1.6rem, 6vw, 2.4rem); margin: 0 0 0.6rem; }
+  #msg p { color: var(--text-muted); line-height: 1.6; margin: 0 0 1rem; }
+  #msg code { font-family: var(--mono); color: var(--accent); }
+  #msg a { color: var(--accent); font-weight: 600; text-decoration: none; }
+
+  /* ---------- TV ---------- */
+  #tv {
+    height: 100vh;
+    flex-direction: column;
+    padding: 1.4vw 3vw 0;
+  }
+  .tvhead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2vw;
+    padding-bottom: 1vw;
+    border-bottom: 1px solid var(--rule);
+  }
+  .brand {
+    font-family: var(--serif);
+    font-size: 2.2vw;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .brand .dim { color: var(--text-muted); opacity: 0.6; }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.8vw;
+    color: var(--text-muted);
+    font-size: 1.5vw;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .dot {
+    width: 0.9vw; height: 0.9vw; border-radius: 50%;
+    background: #B4503A;
+    box-shadow: 0 0 0.6vw rgba(180, 80, 58, 0.7);
+    display: none;
+  }
+  body.offline .dot { display: inline-block; }
+  .stage { position: relative; flex: 1; min-height: 0; }
+  .layer {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+    pointer-events: none;
+  }
+  .layer.on { opacity: 1; }
+  .btitle {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 6vw;
+    font-size: min(6vw, 10.7vh); /* = 6vw on 16:9; only shrinks on ultra-wide */
+    line-height: 1;
+    letter-spacing: -0.01em;
+    margin: 1.2vw 0 0.4vw;
+    color: var(--accent);
+  }
+  .bsub {
+    font-size: 1.8vw;
+    color: var(--text-muted);
+    margin: 0 0 0.6vw;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rows {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    justify-content: space-evenly;
+  }
+  .row {
+    display: flex; align-items: baseline;
+    gap: 1.5vw;
+    font-size: 3vw;
+    font-size: min(3vw, 5.4vh);
+    line-height: 1.05;
+    padding: 0.15vw 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .row.top {
+    font-size: 3.6vw;
+    font-size: min(3.6vw, 6.4vh);
+  }
+  .row:last-child { border-bottom: 0; }
+  .rank {
+    flex: 0 0 4.6vw;
+    text-align: center;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8em;
+  }
+  .row.top .rank { font-size: 0.95em; }
+  .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .val {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+  .row.top .val { color: var(--text); }
+  .empty {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    font-size: 3vw;
+    font-family: var(--serif);
+  }
+  .strip {
+    display: flex;
+    justify-content: center;
+    gap: 2.2vw;
+    padding: 1vw 0 1.2vw;
+    border-top: 1px solid var(--rule);
+    font-size: 1.35vw;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .strip span { padding: 0.3vw 0; border-bottom: 0.25vw solid transparent; }
+  .strip span.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ---------- Print (A4 portrait) ---------- */
+  #print {
+    --bg: #ffffff;
+    --text: #1E1B16;
+    --text-muted: #6B6255;
+    --accent: #A8791F;
+    --rule: #D8D2C4;
+    background: var(--bg);
+    color: var(--text);
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 16mm 14mm;
+    flex-direction: column;
+  }
+  .phead { border-bottom: 1px solid var(--rule); padding-bottom: 4mm; margin-bottom: 6mm; }
+  .peyebrow { color: var(--accent); font-size: 9pt; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; margin: 0 0 2mm; }
+  .ptitle { font-family: var(--serif); font-weight: 500; font-size: 22pt; line-height: 1.1; text-transform: uppercase; margin: 0 0 2mm; }
+  .psub { font-family: var(--serif); font-size: 15pt; color: var(--text-muted); margin: 0; }
+  .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm 8mm; }
+  .pcard { border: 1px solid var(--rule); border-radius: 3mm; padding: 4mm 5mm; min-height: 34mm; }
+  .plabel { color: var(--accent); font-size: 9.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 2.5mm; }
+  .prow { display: flex; align-items: baseline; gap: 2.5mm; font-size: 11.5pt; line-height: 1.35; padding: 0.6mm 0; }
+  .prow .rank { flex: 0 0 7mm; font-size: 1em; color: var(--text); }
+  .prow .name { flex: 1; }
+  .prow .val { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .pempty { color: var(--text-muted); font-size: 10.5pt; font-style: italic; }
+  .pchal { color: var(--text-muted); font-size: 9.5pt; margin: -1.5mm 0 2mm; }
+  .pfoot {
+    margin-top: auto;
+    padding-top: 6mm;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 8mm;
+  }
+  .pfoot .pjoin { font-size: 10.5pt; line-height: 1.5; color: var(--text-muted); }
+  .pfoot .pjoin b { color: var(--text); font-family: var(--mono); letter-spacing: 0.12em; font-size: 14pt; }
+  .pfoot .pjoin .url { font-family: var(--mono); font-size: 9.5pt; }
+  .pfoot canvas { display: block; width: 36mm; height: 36mm; border: 1px solid var(--rule); }
+
+  /* ---------- Poster ---------- */
+  #poster {
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    padding: 4vmin 16px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .oeyebrow { color: var(--accent); font-size: 2.2vmin; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; margin: 0 0 1vmin; }
+  .otitle {
+    font-family: var(--serif); font-weight: 500;
+    font-size: 5vmin; line-height: 1.1; letter-spacing: 0.02em; text-transform: uppercase;
+    margin: 0; max-width: 90vw;
+  }
+  .otitle .dim { color: var(--text-muted); opacity: 0.6; }
+  .oscan { font-size: 4vmin; font-weight: 700; letter-spacing: 0.35em; text-indent: 0.35em; text-transform: uppercase; margin: 2vmin 0 1.5vmin; }
+  .qrwrap {
+    width: 60vmin; height: 60vmin;
+    display: flex; align-items: center; justify-content: center;
+    background: #EDE7DA;
+    border-radius: 2vmin;
+    overflow: hidden;
+  }
+  .qrwrap canvas { display: block; width: 60vmin; height: 60vmin; }
+  .qrwrap .notice { color: #14110D; font-family: var(--mono); font-size: 2.4vmin; padding: 4vmin; }
+  .ocode {
+    font-family: var(--mono);
+    font-size: 9vmin; font-weight: 600;
+    letter-spacing: 0.32em; text-indent: 0.32em;
+    color: var(--accent);
+    margin: 1.5vmin 0 0.5vmin;
+  }
+  .osub { color: var(--text-muted); font-size: 2.2vmin; margin: 0; }
+  .ofoot { font-family: var(--serif); font-size: 3vmin; letter-spacing: 0.06em; color: var(--text-muted); margin-top: 1.5vmin; }
+
+  /* ---------- Paper ---------- */
+  @media print {
+    @page { size: A4 portrait; margin: 12mm; }
+    body { background: #fff !important; overflow: visible !important; height: auto; }
+    /* Cmd+P on the TV page prints the winners sheet, not the TV layout. */
+    body[data-view="tv"] #tv { display: none; }
+    body[data-view="tv"] #print { display: flex; }
+    #print { max-width: none; min-height: 0; height: 273mm; margin: 0; padding: 0; overflow: hidden; }
+    #poster { min-height: 0; height: 273mm; background: #14110D; border-radius: 3mm; }
+    body[data-view="poster"] { background: #fff !important; }
+    .dot { display: none !important; }
+  }
+</style>
+</head>
+<body data-view="">
+
+  <section id="msg">
+    <div class="card">
+      <h1 id="msg-title">No league selected</h1>
+      <p id="msg-body">Add <code>?g=your-gym</code> to the address to show a gym&rsquo;s league.</p>
+      <p><a href="/">getwham.app</a></p>
+    </div>
+  </section>
+
+  <section id="tv">
+    <header class="tvhead">
+      <div class="brand" id="tv-title">The <span class="dim">Gym</span> &times; WHAM League</div>
+      <div class="meta"><span id="tv-meta">Loading&hellip;</span><span class="dot" title="Offline — showing the last update"></span></div>
+    </header>
+    <div class="stage">
+      <div class="layer" id="layer-a"></div>
+      <div class="layer" id="layer-b"></div>
+    </div>
+    <nav class="strip" id="strip"></nav>
+  </section>
+
+  <section id="print">
+    <header class="phead">
+      <p class="peyebrow">WHAM League</p>
+      <h1 class="ptitle" id="p-title"></h1>
+      <p class="psub" id="p-sub"></p>
+    </header>
+    <div class="pgrid" id="p-grid"></div>
+    <footer class="pfoot">
+      <div class="pjoin" id="p-join"></div>
+      <canvas id="p-qr" hidden></canvas>
+    </footer>
+  </section>
+
+  <section id="poster">
+    <div>
+      <p class="oeyebrow">WHAM League</p>
+      <h1 class="otitle" id="o-title">The <span class="dim">Gym</span> &times; WHAM League</h1>
+    </div>
+    <p class="oscan">Scan to join</p>
+    <div class="qrwrap" id="o-qrwrap"><canvas id="o-qr" hidden></canvas></div>
+    <div>
+      <div class="ocode" id="o-code"></div>
+      <p class="osub" id="o-sub">or enter the code in WHAM &rarr; Settings &rarr; Gym league</p>
+    </div>
+    <div class="ofoot">getwham.app</div>
+  </section>
+
+<script>
+  // Public by design: RLS + RPC grants are the gate, the anon key is not a secret.
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var QR_LIB = "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js";
+  var SITE = "https://getwham.app";
+  var ROTATE_MS = 15000;
+  var REFRESH_MS = 60000;
+
+  // --- helpers (tested in isolation) ---
+  var BOARDS = [
+    { key: "weekly_volume", label: "Weekly Volume", settled: "Volume" },
+    { key: "workouts",      label: "Most Workouts" },
+    { key: "streak",        label: "Longest Streak" },
+    { key: "bench",         label: "Bench" },
+    { key: "squat",         label: "Squat" },
+    { key: "deadlift",      label: "Deadlift" },
+    { key: "improved",      label: "Most Improved" },
+    { key: "challenge",     label: "Challenge of the Month" }
+  ];
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+                "August", "September", "October", "November", "December"];
+  var MEDALS = { 1: "🥇", 2: "🥈", 3: "🥉" }; // 🥇🥈🥉
+  var MINUS = "−";
+
+  function normaliseCode(raw) {
+    var s = String(raw == null ? "" : raw).toUpperCase().replace(/[^A-Z2-9]/g, "");
+    return /^[A-Z2-9]{6}$/.test(s) ? s : "";
+  }
+  function displayGymName(name) {
+    return String(name || "").trim().replace(/^the\s+/i, "");
+  }
+  // Integers with thousands commas; one decimal when not whole. Negative → U+2212.
+  function fmtNum(n) {
+    var v = Number(n);
+    if (!isFinite(v)) v = 0;
+    var r = Math.round(Math.abs(v) * 10) / 10;
+    var s = r === Math.round(r) ? String(Math.round(r)) : r.toFixed(1);
+    var parts = s.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return (v < 0 && r !== 0 ? MINUS : "") + parts.join(".");
+  }
+  function plural(n, one, many) {
+    return fmtNum(n) + " " + (Number(n) === 1 ? one : many);
+  }
+  function formatBoardValue(key, value, metric) {
+    switch (key) {
+      case "weekly_volume": case "bench": case "squat": case "deadlift":
+        return fmtNum(value) + " kg";
+      case "workouts": return plural(value, "workout", "workouts");
+      case "streak":   return plural(value, "day", "days");
+      case "improved": {
+        var v = Number(value) || 0;
+        return (v > 0 ? "+" : "") + fmtNum(v) + " kg";
+      }
+      case "challenge":
+        switch (metric) {
+          case "reps":     return fmtNum(value) + " reps";
+          case "sets":     return fmtNum(value) + " sets";
+          case "sessions": return fmtNum(value) + " sessions";
+          default:         return fmtNum(value) + " kg"; // "volume"
+        }
+    }
+    return fmtNum(value);
+  }
+  // "YYYY-MM-DD" → {y, m}; parsed by hand so no Date/timezone drift.
+  function parseMonth(s) {
+    var m = /^(\d{4})-(\d{2})/.exec(String(s || ""));
+    return m ? { y: +m[1], m: +m[2] } : null;
+  }
+  function monthName(ym) { return ym ? MONTHS[ym.m - 1] || "" : ""; }
+  function prevMonth(ym) { return ym.m === 1 ? { y: ym.y - 1, m: 12 } : { y: ym.y, m: ym.m - 1 }; }
+  function monthISO(ym) { return ym.y + "-" + (ym.m < 10 ? "0" : "") + ym.m + "-01"; }
+  function rankLabel(rank) { return MEDALS[rank] || String(rank); }
+  function memberCount(n) { n = Number(n) || 0; return fmtNum(n) + (n === 1 ? " member" : " members"); }
+  // --- end helpers ---
+
+  // ---------- params ----------
+  var params = new URLSearchParams(location.search);
+  var slug = String(params.get("g") || "").trim().toLowerCase();
+  var code = normaliseCode(params.get("c"));
+  var flag = function (k) { var v = params.get(k); return v != null && v !== "0" && v !== "false"; };
+  var mode = flag("poster") ? "poster" : flag("print") ? "print" : "tv";
+  var pinnedIdx = -1;
+  BOARDS.forEach(function (b, i) { if (b.key === params.get("board")) pinnedIdx = i; });
+
+  var state = { info: null, boards: {}, winners: null, loaded: false };
+  var activeIdx = pinnedIdx >= 0 ? pinnedIdx : 0;
+  var layers = [document.getElementById("layer-a"), document.getElementById("layer-b")];
+  var curLayer = 0;
+
+  // ---------- DOM utils ----------
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function setView(v) { document.body.setAttribute("data-view", v); }
+  function showMessage(title, body) {
+    document.getElementById("msg-title").textContent = title;
+    var p = document.getElementById("msg-body");
+    clear(p);
+    p.textContent = body;
+    setView("msg");
+  }
+  function setTitle(node, name) {
+    clear(node);
+    if (name) {
+      node.textContent = ("The " + displayGymName(name) + " × WHAM League").toUpperCase();
+    } else {
+      node.appendChild(document.createTextNode("THE "));
+      node.appendChild(el("span", "dim", "GYM"));
+      node.appendChild(document.createTextNode(" × WHAM LEAGUE"));
+    }
+  }
+
+  // ---------- data ----------
+  function rpc(fn, body) {
+    return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: "Bearer " + SUPABASE_ANON,
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (!r.ok) throw new Error(fn + " " + r.status);
+      return r.json();
+    });
+  }
+  function loadInfo() {
+    return rpc("league_public_info", { p_slug: slug }).then(function (rows) {
+      return Array.isArray(rows) && rows.length ? rows[0] : null;
+    });
+  }
+  // info + all 8 boards (+ last month's winners for the print sheet)
+  function loadAll() {
+    return loadInfo().then(function (info) {
+      if (!info) return { notFound: true };
+      var month = parseMonth(info.month);
+      var calls = BOARDS.map(function (b) {
+        return rpc("league_public_board", { p_slug: slug, p_board: b.key });
+      });
+      calls.push(month
+        ? rpc("league_public_winners", { p_slug: slug, p_month: monthISO(prevMonth(month)) })
+        : Promise.resolve([]));
+      return Promise.all(calls).then(function (results) {
+        var boards = {};
+        BOARDS.forEach(function (b, i) { boards[b.key] = Array.isArray(results[i]) ? results[i] : []; });
+        var winners = results[BOARDS.length];
+        return { info: info, boards: boards, winners: Array.isArray(winners) ? winners : [] };
+      });
+    });
+  }
+
+  // ---------- TV ----------
+  function boardSubtitle(b) {
+    var info = state.info || {};
+    if (b.key === "challenge") {
+      if (!info.challenge_title) return "No challenge set this month";
+      var t = info.challenge_target != null
+        ? " · Target " + formatBoardValue("challenge", info.challenge_target, info.challenge_metric)
+        : "";
+      return info.challenge_title + t;
+    }
+    if (b.key === "weekly_volume") return "This week";
+    if (b.key === "improved") return "Biggest gain on a lift this month";
+    return "";
+  }
+  function renderBoard(layer, idx) {
+    var b = BOARDS[idx];
+    var rows = (state.boards[b.key] || []).slice(0, 10);
+    var metric = state.info ? state.info.challenge_metric : null;
+    clear(layer);
+    layer.appendChild(el("h2", "btitle", b.label));
+    var sub = boardSubtitle(b);
+    if (sub) layer.appendChild(el("p", "bsub", sub));
+    if (!rows.length) {
+      layer.appendChild(el("div", "empty", "Nobody on this board yet"));
+      return;
+    }
+    var list = el("div", "rows");
+    rows.forEach(function (r) {
+      var rank = Number(r.rank) || 0;
+      var row = el("div", "row" + (rank >= 1 && rank <= 3 ? " top" : ""));
+      row.appendChild(el("span", "rank", rankLabel(rank)));
+      row.appendChild(el("span", "name", r.display_name || "—"));
+      row.appendChild(el("span", "val", formatBoardValue(b.key, r.value, metric)));
+      list.appendChild(row);
+    });
+    layer.appendChild(list);
+  }
+  function renderStrip(idx) {
+    var strip = document.getElementById("strip");
+    clear(strip);
+    BOARDS.forEach(function (b, i) {
+      strip.appendChild(el("span", i === idx ? "on" : "", b.label));
+    });
+  }
+  function renderHeader() {
+    var info = state.info;
+    setTitle(document.getElementById("tv-title"), info && info.name);
+    var m = info ? monthName(parseMonth(info.month)) : "";
+    document.getElementById("tv-meta").textContent = info
+      ? [m, memberCount(info.member_count), "getwham.app/league/?g=" + info.slug].filter(Boolean).join(" · ")
+      : "";
+    document.title = info ? displayGymName(info.name) + " × WHAM League" : "WHAM League";
+  }
+  // Crossfade: paint the next board into the hidden layer, then swap opacity.
+  function showBoard(idx, fade) {
+    activeIdx = idx;
+    if (fade) {
+      var next = 1 - curLayer;
+      renderBoard(layers[next], idx);
+      layers[next].classList.add("on");
+      layers[curLayer].classList.remove("on");
+      curLayer = next;
+    } else {
+      renderBoard(layers[curLayer], idx);
+      layers[curLayer].classList.add("on");
+    }
+    renderStrip(idx);
+  }
+  function setOffline(off) { document.body.classList.toggle("offline", !!off); }
+
+  // ---------- Print ----------
+  function groupWinners(rows) {
+    var by = {};
+    (rows || []).forEach(function (r) {
+      if (!by[r.board]) by[r.board] = [];
+      by[r.board].push(r);
+    });
+    Object.keys(by).forEach(function (k) {
+      by[k].sort(function (a, b) { return (Number(a.rank) || 0) - (Number(b.rank) || 0); });
+    });
+    return by;
+  }
+  function renderPrint() {
+    var info = state.info;
+    if (!info) return;
+    var month = parseMonth(info.month);
+    var settled = state.winners && state.winners.length ? groupWinners(state.winners) : null;
+    var metric = info.challenge_metric;
+
+    setTitle(document.getElementById("p-title"), info.name);
+    document.getElementById("p-sub").textContent = settled
+      ? monthName(prevMonth(month)) + " winners"
+      : monthName(month) + " so far";
+
+    var grid = document.getElementById("p-grid");
+    clear(grid);
+    BOARDS.forEach(function (b) {
+      var card = el("div", "pcard");
+      card.appendChild(el("p", "plabel", settled && b.settled ? b.settled : b.label));
+      if (b.key === "challenge" && !settled && info.challenge_title) {
+        card.appendChild(el("p", "pchal", info.challenge_title));
+      }
+      var rows = settled ? (settled[b.key] || []) : (state.boards[b.key] || []);
+      rows = rows.slice(0, 3);
+      if (!rows.length) {
+        card.appendChild(el("p", "pempty", "Nobody on this board yet"));
+      } else {
+        rows.forEach(function (r) {
+          var row = el("div", "prow");
+          row.appendChild(el("span", "rank", rankLabel(Number(r.rank) || 0)));
+          row.appendChild(el("span", "name", r.display_name || "—"));
+          row.appendChild(el("span", "val", formatBoardValue(b.key, r.value, metric)));
+          card.appendChild(row);
+        });
+      }
+      grid.appendChild(card);
+    });
+
+    var join = document.getElementById("p-join");
+    clear(join);
+    if (code) {
+      join.appendChild(document.createTextNode("Scan to join, or enter "));
+      join.appendChild(el("b", null, code));
+      join.appendChild(document.createTextNode(" in WHAM → Settings → Gym league"));
+      join.appendChild(el("br"));
+      join.appendChild(el("span", "url", SITE.replace(/^https?:\/\//, "") + "/join/?c=" + code));
+    } else {
+      join.appendChild(el("span", "url", SITE.replace(/^https?:\/\//, "") + "/league/?g=" + info.slug));
+    }
+  }
+
+  // ---------- QR ----------
+  var qrReady = null;
+  function loadQrLib() {
+    if (qrReady) return qrReady;
+    qrReady = new Promise(function (resolve, reject) {
+      if (window.QRCode) return resolve(window.QRCode);
+      var s = document.createElement("script");
+      s.src = QR_LIB;
+      s.onload = function () { window.QRCode ? resolve(window.QRCode) : reject(new Error("QRCode missing")); };
+      s.onerror = function () { reject(new Error("QR lib failed to load")); };
+      document.head.appendChild(s);
+    });
+    return qrReady;
+  }
+  function joinUrl() { return SITE + "/join/?c=" + code; }
+  function drawQr(canvas, px, cssSize) {
+    return loadQrLib().then(function (QRCode) {
+      return new Promise(function (resolve, reject) {
+        QRCode.toCanvas(canvas, joinUrl(), {
+          width: px, margin: 1, errorCorrectionLevel: "M",
+          color: { dark: "#14110D", light: "#EDE7DA" }
+        }, function (err) {
+          if (err) return reject(err);
+          // the lib pins inline px sizes; let our CSS size the canvas instead
+          canvas.style.width = cssSize;
+          canvas.style.height = cssSize;
+          canvas.hidden = false;
+          resolve();
+        });
+      });
+    });
+  }
+
+  // ---------- Poster ----------
+  function renderPoster(info) {
+    setTitle(document.getElementById("o-title"), info && info.name);
+    document.title = info ? displayGymName(info.name) + " × WHAM League — poster" : "WHAM League poster";
+    var wrap = document.getElementById("o-qrwrap");
+    var codeEl = document.getElementById("o-code");
+    if (!code) {
+      clear(wrap);
+      wrap.appendChild(el("div", "notice", "Add &c=CODE to the URL"));
+      codeEl.textContent = "";
+      document.getElementById("o-sub").textContent = "The poster needs the league’s join code.";
+      return;
+    }
+    codeEl.textContent = code;
+    drawQr(document.getElementById("o-qr"), 1024, "60vmin").catch(function () {
+      clear(wrap);
+      wrap.appendChild(el("div", "notice", joinUrl()));
+    });
+  }
+
+  // ---------- boot ----------
+  function applyData(data) {
+    state.info = data.info;
+    state.boards = data.boards;
+    state.winners = data.winners;
+    state.loaded = true;
+    renderHeader();
+    renderPrint();
+  }
+  function refresh() {
+    return loadAll().then(function (data) {
+      if (data.notFound) {
+        showMessage("We couldn’t find that league",
+          "Nothing is live at “" + slug + "” — check the address with the front desk.");
+        return;
+      }
+      var first = !state.loaded;
+      applyData(data);
+      setOffline(false);
+      if (mode === "tv") {
+        setView("tv");
+        showBoard(activeIdx, false);
+      } else if (mode === "print") {
+        setView("print");
+        if (first && code) {
+          drawQr(document.getElementById("p-qr"), 512, "36mm").catch(function () {});
+        }
+      }
+    }).catch(function () {
+      if (!state.loaded) {
+        showMessage("Can’t reach WHAM right now", "Check the screen’s internet connection — retrying every minute.");
+      }
+      setOffline(true);
+    });
+  }
+
+  (function boot() {
+    if (!slug) { setView("msg"); return; }
+
+    if (mode === "poster") {
+      setView("poster");
+      renderPoster(null);
+      loadInfo().then(function (info) {
+        if (!info) {
+          showMessage("We couldn’t find that league",
+            "Nothing is live at “" + slug + "” — check the address.");
+          return;
+        }
+        renderPoster(info);
+      }).catch(function () { /* keep the dimmed placeholder; QR still works */ });
+      return;
+    }
+
+    setView(mode); // placeholder header shows while the first fetch is in flight
+    renderStrip(activeIdx);
+    refresh();
+    setInterval(refresh, REFRESH_MS);
+    if (mode === "tv" && pinnedIdx < 0) {
+      setInterval(function () {
+        if (!state.loaded) return;
+        showBoard((activeIdx + 1) % BOARDS.length, true);
+      }, ROTATE_MS);
+    }
+  })();
+</script>
+</body>
+</html>
