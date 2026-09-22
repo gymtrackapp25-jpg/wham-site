@@ -323,7 +323,13 @@
   // Public by design: RLS + RPC grants are the gate, the anon key is not a secret.
   var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
   var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
-  var QR_LIB = "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js";
+  /* qrcode-generator (kazuhikoarase): tiny, stable API, and unlike
+     qrcode@1.5.x it really is published at this path. Two hosts — if
+     jsdelivr is blocked on the gym's wifi, cdnjs is tried next. */
+  var QR_LIBS = [
+    "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"
+  ];
   var SITE = "https://getwham.app";
   var ROTATE_MS = 15000;
   var REFRESH_MS = 60000;
@@ -616,31 +622,46 @@
   function loadQrLib() {
     if (qrReady) return qrReady;
     qrReady = new Promise(function (resolve, reject) {
-      if (window.QRCode) return resolve(window.QRCode);
-      var s = document.createElement("script");
-      s.src = QR_LIB;
-      s.onload = function () { window.QRCode ? resolve(window.QRCode) : reject(new Error("QRCode missing")); };
-      s.onerror = function () { reject(new Error("QR lib failed to load")); };
-      document.head.appendChild(s);
+      if (window.qrcode) return resolve(window.qrcode);
+      var i = 0;
+      (function next() {
+        if (i >= QR_LIBS.length) return reject(new Error("QR lib failed to load"));
+        var s = document.createElement("script");
+        s.src = QR_LIBS[i++];
+        s.onload = function () { window.qrcode ? resolve(window.qrcode) : next(); };
+        s.onerror = next;
+        document.head.appendChild(s);
+      })();
     });
     return qrReady;
   }
   function joinUrl() { return SITE + "/join/?c=" + code; }
+  /* draw the modules ourselves — no renderer API to depend on, and the
+     canvas stays crisp at any printed size */
   function drawQr(canvas, px, cssSize) {
-    return loadQrLib().then(function (QRCode) {
-      return new Promise(function (resolve, reject) {
-        QRCode.toCanvas(canvas, joinUrl(), {
-          width: px, margin: 1, errorCorrectionLevel: "M",
-          color: { dark: "#14110D", light: "#EDE7DA" }
-        }, function (err) {
-          if (err) return reject(err);
-          // the lib pins inline px sizes; let our CSS size the canvas instead
-          canvas.style.width = cssSize;
-          canvas.style.height = cssSize;
-          canvas.hidden = false;
-          resolve();
-        });
-      });
+    return loadQrLib().then(function (qrcode) {
+      var qr = qrcode(0, "M");           // type 0 = pick the smallest that fits
+      qr.addData(joinUrl());
+      qr.make();
+      var n = qr.getModuleCount();
+      var quiet = 2;                      // quiet zone, in modules
+      var total = n + quiet * 2;
+      var cell = Math.max(1, Math.floor(px / total));
+      var size = cell * total;
+      canvas.width = size;
+      canvas.height = size;
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#EDE7DA";
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = "#14110D";
+      for (var r = 0; r < n; r++) {
+        for (var c = 0; c < n; c++) {
+          if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+        }
+      }
+      canvas.style.width = cssSize;
+      canvas.style.height = cssSize;
+      canvas.hidden = false;
     });
   }
 
