@@ -3,22 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WHAM</title>
-<meta name="description" content="WHAM — an isometric gym floor for tracking your workouts.">
+<title>WHAM — your gym floor, tracked</title>
+<meta name="description" content="WHAM turns your gym into a living isometric floor. Tap a machine to log, see your body in numbers, join your gym's league, and train for race day.">
+<!-- Safari's built-in "Open in WHAM / Get" banner on iPhone -->
+<meta name="apple-itunes-app" content="app-id=6793319978">
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta property="og:title" content="WHAM — your gym floor, tracked">
+<meta property="og:description" content="Tap a machine to log. Your body in numbers. Gym leagues. Race Prep.">
+<meta property="og:image" content="https://getwham.app/icon.png">
 <style>
   :root {
     --bg: #14110D;
+    --bg-elevated: #1C1712;
     --text: #EDE7DA;
     --text-muted: #A79C8A;
     --accent: #D1A54B;
+    --accent-ink: #14110D;
     --rule: #332A1E;
   }
   @media (prefers-color-scheme: light) {
     :root {
       --bg: #ECEDE9;
+      --bg-elevated: #F6F5F1;
       --text: #1E1B16;
       --text-muted: #6B6255;
       --accent: #A8791F;
+      --accent-ink: #FFFFFF;
       --rule: #D8D2C4;
     }
   }
@@ -33,37 +44,72 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 1.5rem;
+    padding: 2.5rem 1rem;
   }
-  .card { max-width: 420px; }
+  .card { max-width: 460px; width: 100%; }
+  .icon { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
   h1 {
     font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
     font-weight: 500;
-    font-size: 2.4rem;
+    font-size: 2.6rem;
     letter-spacing: -0.01em;
-    margin: 0 0 0.6rem;
+    margin: 1.1rem 0 0.4rem;
   }
-  p { color: var(--text-muted); margin: 0 0 2rem; line-height: 1.6; }
+  .tag { color: var(--text-muted); margin: 0 0 1.8rem; line-height: 1.6; font-size: 1.05rem; }
+  .stores { display: flex; flex-direction: column; gap: 0.7rem; margin: 0 auto 2.2rem; max-width: 320px; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 0.95rem 1.2rem; border-radius: 14px; font-weight: 700; font-size: 1rem;
+    text-decoration: none;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn.soon {
+    border: 1px solid var(--rule); color: var(--text-muted); cursor: default; font-weight: 600;
+  }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  ul.features { list-style: none; padding: 0; margin: 0 0 2.2rem; text-align: left; display: grid; gap: 0.85rem; }
+  ul.features li { background: var(--bg-elevated); border: 1px solid var(--rule); border-radius: 14px; padding: 0.85rem 1rem; }
+  ul.features b { display: block; color: var(--text); margin-bottom: 0.15rem; }
+  ul.features span { color: var(--text-muted); font-size: 0.93rem; line-height: 1.5; }
   nav {
-    display: flex;
-    gap: 1.5rem;
-    justify-content: center;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--rule);
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.5rem; justify-content: center;
+    padding-top: 1.5rem; border-top: 1px solid var(--rule);
   }
-  a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
-  a:hover { text-decoration: underline; }
+  nav a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  nav a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-  <div class="card">
+  <main class="card">
+    <img class="icon" src="/icon.png" alt="WHAM app icon" width="96" height="96">
     <h1>WHAM</h1>
-    <p>Your gym floor, tracked.</p>
+    <p class="tag">Your gym floor, tracked. Tap a machine to log a set — and watch your city grow.</p>
+
+    <div class="stores">
+      <a class="btn primary" href="https://apps.apple.com/gb/app/wham-gym/id6793319978">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.64c-.02-2.4 1.96-3.56 2.05-3.62-1.12-1.64-2.86-1.86-3.48-1.89-1.48-.15-2.89.87-3.64.87-.76 0-1.92-.85-3.15-.83-1.62.02-3.12.94-3.95 2.39-1.69 2.92-.43 7.25 1.21 9.62.8 1.16 1.76 2.46 3.01 2.41 1.21-.05 1.67-.78 3.13-.78 1.46 0 1.87.78 3.15.76 1.3-.02 2.12-1.18 2.91-2.35.92-1.34 1.3-2.64 1.32-2.71-.03-.01-2.53-.97-2.56-3.87zM13.98 5.62c.67-.81 1.12-1.93.99-3.05-.96.04-2.13.64-2.82 1.45-.62.71-1.16 1.86-1.02 2.96 1.08.08 2.18-.55 2.85-1.36z"/></svg>
+        Get WHAM on the App Store
+      </a>
+      <span class="btn soon" aria-label="Google Play — coming soon">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3c-.2.2-.3.5-.3.9v17.6c0 .4.1.7.3.9l9.8-9.7L3.6 2.3zm11 8.5 2.8-2.8L5.3 1.2c-.4-.2-.8-.2-1.1-.1l10.4 9.7zm0 2.4L4.2 22.9c.3.1.7.1 1.1-.1l12.1-6.8-2.8-2.8zm6.4-3.4-2.8-1.6-3 3 3 3 2.8-1.6c.8-.5.8-1.8 0-2.8z"/></svg>
+        Google Play — coming soon
+      </span>
+    </div>
+
+    <ul class="features">
+      <li><b>Your gym, as a living floor</b><span>An isometric map of your real equipment. Tap a machine to log — weights, reps, metres or minutes.</span></li>
+      <li><b>Your body in numbers</b><span>Push vs pull, quads vs hamstrings, lifts that lag — balance checks from what you actually log, with a fix for each.</span></li>
+      <li><b>Leagues, quests and a daily challenge</b><span>Join your gym's league with a QR code, finish the weekly quests, and see where you placed on today's challenge.</span></li>
+      <li><b>Race Prep</b><span>Train for a hybrid fitness race: live race sims with splits, every division, and a plan built around race day.</span></li>
+    </ul>
+
     <nav>
+      <a href="/support">Support</a>
       <a href="/privacy">Privacy Policy</a>
       <a href="/terms">Terms of Service</a>
-      <a href="/support">Support</a>
+      <a href="/delete-account">Delete your account</a>
     </nav>
-  </div>
+  </main>
 </body>
 </html>
