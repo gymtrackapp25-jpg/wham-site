@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["J7G5NYX6MG.com.ironcity.app"],
+        "components": [
+          { "/": "/join", "comment": "Gym League join — getwham.app/join/?c=CODE opens WHAM directly" },
+          { "/": "/join/*" }
+        ]
+      }
+    ]
+  }
+}
