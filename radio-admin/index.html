@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WHAM Radio admin</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14110D">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+    --danger: #E0735A;
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px 16px 48px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  [hidden] { display: none !important; }
+  main { max-width: 560px; margin: 0 auto; }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.7rem, 7.5vw, 2.2rem);
+    line-height: 1.15;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.25rem;
+    margin: 2rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  p { line-height: 1.55; }
+  .muted { color: var(--text-muted); }
+  .small { font-size: 0.9rem; }
+  .status { min-height: 1.5em; color: var(--text-muted); margin: 0.6rem 0; }
+  .status.err { color: var(--danger); }
+  .status.ok { color: var(--accent); }
+
+  label { display: block; font-size: 0.85rem; color: var(--text-muted); margin: 0 0 6px; }
+  input[type=email], input[type=password], input[type=text] {
+    width: 100%;
+    font: inherit;
+    font-size: 16px; /* ≥16px or iOS Safari zooms on focus */
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 12px 14px;
+    outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  .field { margin: 0 0 14px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--rule);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.985); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #14110D; }
+  .btn.block { width: 100%; }
+  .btn.small { min-height: 40px; padding: 8px 12px; font-size: 0.9rem; }
+  .btn.danger { color: var(--danger); }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .spacer { flex: 1; }
+
+  .note {
+    background: var(--accent-soft);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin: 0 0 1rem;
+  }
+  .who { font-size: 0.9rem; color: var(--text-muted); overflow-wrap: anywhere; }
+
+  /* add tracks */
+  .picker { position: relative; }
+  .picker input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+  .uploads { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .uploads li {
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+  .uploads .name { overflow-wrap: anywhere; }
+  .uploads .state { color: var(--text-muted); margin-top: 4px; }
+  .uploads .state.err { color: var(--danger); }
+  .uploads .state.ok { color: var(--accent); }
+  .bar { height: 4px; background: var(--rule); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.15s; }
+
+  /* track list */
+  .tracks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .track {
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .track .num { font-family: var(--mono); color: var(--accent); font-size: 0.85rem; min-width: 2ch; }
+  .track input[type=text] { padding: 9px 12px; }
+  .track .fields { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+  .track audio { width: 100%; height: 40px; margin: 4px 0 8px; }
+  .track .saved { font-size: 0.8rem; color: var(--text-muted); min-height: 1.2em; }
+  .track .saved.err { color: var(--danger); }
+  .empty { color: var(--text-muted); text-align: center; padding: 24px 0; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">WHAM Radio</p>
+  <h1>Playlist admin</h1>
+
+  <!-- signed out -->
+  <section id="signin" hidden>
+    <p class="muted">Staff only. Sign in with your WHAM account.</p>
+    <form id="signin-form" class="stack" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" inputmode="email" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password">
+      </div>
+      <button class="btn primary block" type="submit" id="signin-btn">Sign in</button>
+      <button class="btn block" type="button" id="link-btn">Email me a sign-in link</button>
+    </form>
+    <p id="signin-status" class="status" aria-live="polite"></p>
+  </section>
+
+  <!-- signed in, not staff -->
+  <section id="notstaff" hidden>
+    <p>This page is for WHAM staff.</p>
+    <p class="who" id="notstaff-who"></p>
+    <button class="btn" type="button" data-signout>Sign out</button>
+  </section>
+
+  <!-- staff -->
+  <section id="staff" hidden>
+    <div class="row">
+      <span class="who spacer" id="staff-who"></span>
+      <button class="btn small" type="button" data-signout>Sign out</button>
+    </div>
+
+    <h2>Add tracks</h2>
+    <p class="note">Only upload music WHAM has the rights to stream in an app &mdash; our own tracks,
+      or ones licensed for exactly this. Anything added here plays for every WHAM user.</p>
+    <div class="picker">
+      <button class="btn primary block" type="button" tabindex="-1">Choose audio files</button>
+      <input id="files" type="file" accept="audio/*" multiple aria-label="Choose audio files">
+    </div>
+    <p class="muted small">MP3, M4A, AAC or WAV, up to 25&nbsp;MB each. Titles come from the file names &mdash; edit them below.</p>
+    <ul class="uploads" id="uploads"></ul>
+
+    <h2>Tracks <span class="muted small" id="count"></span></h2>
+    <p class="muted small">The app shuffles the list each session; this order is the starting point.</p>
+    <p id="list-status" class="status" aria-live="polite"></p>
+    <ul class="tracks" id="tracks"></ul>
+  </section>
+
+  <p id="boot" class="status">Loading&hellip;</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Public by design: RLS (0076_radio_and_league_posts.sql) is the gate —
+  // only wham_staff rows can write radio_tracks or the `radio` bucket.
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var REDIRECT = "https://getwham.app/radio-admin/";
+  var BUCKET = "radio";
+  var MAX_BYTES = 25 * 1024 * 1024;
+  // must match the bucket's allowed_mime_types
+  var ALLOWED = ["audio/mpeg", "audio/mp3", "audio/mp4", "audio/x-m4a", "audio/aac", "audio/wav", "audio/x-wav"];
+  var BY_EXT = { mp3: "audio/mpeg", m4a: "audio/mp4", mp4: "audio/mp4", aac: "audio/aac", wav: "audio/wav" };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    // implicit: a magic link opened from the Mail app lands in Safari with
+    // the session in the URL hash, no code verifier needed
+    auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+  });
+
+  var tracks = [];
+  var shownFor = null; // user id the current view was built for
+
+  function show(id) {
+    ["signin", "notstaff", "staff"].forEach(function (s) { $(s).hidden = s !== id; });
+    $("boot").hidden = true;
+  }
+  function setStatus(el, text, kind) {
+    el.textContent = text || "";
+    el.className = "status" + (kind ? " " + kind : "");
+  }
+  function publicUrl(path) { return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl; }
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0;
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+    });
+  }
+  function extOf(name) {
+    var m = /\.([a-z0-9]+)$/i.exec(name || "");
+    return m ? m[1].toLowerCase() : "";
+  }
+  function titleFrom(name) {
+    var t = (name || "").replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+    return (t || "Untitled").slice(0, 120).trim();
+  }
+  function mimeOf(file) {
+    var t = (file.type || "").toLowerCase();
+    if (ALLOWED.indexOf(t) >= 0) return t;
+    return BY_EXT[extOf(file.name)] || null;
+  }
+
+  // ---------------------------------------------------------------- auth
+  async function route(session) {
+    if (!session) { shownFor = null; show("signin"); return; }
+    if (shownFor === session.user.id) return;
+    shownFor = session.user.id;
+    var who = "Signed in as " + (session.user.email || "your account");
+    var res = await sb.rpc("wham_is_staff");
+    if (res.error || res.data !== true) {
+      $("notstaff-who").textContent = who;
+      show("notstaff");
+      return;
+    }
+    $("staff-who").textContent = who;
+    show("staff");
+    loadTracks();
+  }
+
+  $("signin-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var email = $("email").value.trim();
+    var password = $("password").value;
+    if (!email || !password) { setStatus($("signin-status"), "Enter your email and password.", "err"); return; }
+    $("signin-btn").disabled = true;
+    setStatus($("signin-status"), "Signing in…");
+    var res = await sb.auth.signInWithPassword({ email: email, password: password });
+    $("signin-btn").disabled = false;
+    if (res.error) { setStatus($("signin-status"), res.error.message, "err"); return; }
+    setStatus($("signin-status"), "");
+    route(res.data.session);
+  });
+
+  $("link-btn").addEventListener("click", async function () {
+    var email = $("email").value.trim();
+    if (!email) { setStatus($("signin-status"), "Enter your email first.", "err"); return; }
+    $("link-btn").disabled = true;
+    setStatus($("signin-status"), "Sending…");
+    var res = await sb.auth.signInWithOtp({
+      email: email,
+      options: { shouldCreateUser: false, emailRedirectTo: REDIRECT }
+    });
+    $("link-btn").disabled = false;
+    if (res.error) { setStatus($("signin-status"), res.error.message, "err"); return; }
+    setStatus($("signin-status"), "Check your email for a sign-in link, then open it on this device.", "ok");
+  });
+
+  document.querySelectorAll("[data-signout]").forEach(function (b) {
+    b.addEventListener("click", async function () {
+      await sb.auth.signOut();
+      tracks = [];
+      $("tracks").textContent = "";
+      $("uploads").textContent = "";
+      route(null);
+    });
+  });
+
+  sb.auth.onAuthStateChange(function (_event, session) {
+    // defer: calling Supabase from inside the callback can deadlock the auth lock
+    setTimeout(function () { route(session); }, 0);
+  });
+
+  // -------------------------------------------------------------- tracks
+  async function loadTracks() {
+    setStatus($("list-status"), "Loading tracks…");
+    var res = await sb.from("radio_tracks")
+      .select("id, title, artist, storage_path, position, created_at")
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (res.error) { setStatus($("list-status"), "Couldn't load tracks: " + res.error.message, "err"); return; }
+    tracks = res.data || [];
+    setStatus($("list-status"), "");
+    renderTracks();
+  }
+
+  function renderTracks() {
+    var list = $("tracks");
+    list.textContent = "";
+    $("count").textContent = tracks.length ? "(" + tracks.length + ")" : "";
+    if (!tracks.length) {
+      var li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "No tracks yet — the radio button stays hidden in the app until there's at least one.";
+      list.appendChild(li);
+      return;
+    }
+    tracks.forEach(function (t, i) { list.appendChild(trackItem(t, i)); });
+  }
+
+  function trackItem(t, i) {
+    var li = document.createElement("li");
+    li.className = "track";
+
+    var head = document.createElement("div");
+    head.className = "row";
+    var num = document.createElement("span");
+    num.className = "num";
+    num.textContent = String(i + 1);
+    var spacer = document.createElement("span");
+    spacer.className = "spacer";
+    var up = button("↑", "Move up", function () { move(i, -1); });
+    up.disabled = i === 0;
+    var down = button("↓", "Move down", function () { move(i, 1); });
+    down.disabled = i === tracks.length - 1;
+    var del = button("Delete", "Delete track", function () { remove(t, del); });
+    del.classList.add("danger");
+    head.append(num, spacer, up, down, del);
+
+    var fields = document.createElement("div");
+    fields.className = "fields";
+    var title = input(t.title, "Title", 120);
+    var artist = input(t.artist || "", "Artist (optional)", 120);
+    fields.append(title, artist);
+
+    var saved = document.createElement("div");
+    saved.className = "saved";
+
+    function save() {
+      var nt = title.value.trim();
+      var na = artist.value.trim() || null;
+      if (!nt) { title.value = t.title; saved.className = "saved err"; saved.textContent = "A track needs a title."; return; }
+      if (nt === t.title && na === (t.artist || null)) return;
+      saved.className = "saved";
+      saved.textContent = "Saving…";
+      sb.from("radio_tracks").update({ title: nt, artist: na }).eq("id", t.id).then(function (res) {
+        if (res.error) { saved.className = "saved err"; saved.textContent = "Couldn't save: " + res.error.message; return; }
+        t.title = nt; t.artist = na;
+        title.value = nt; artist.value = na || "";
+        saved.textContent = "Saved";
+      });
+    }
+    title.addEventListener("change", save);
+    artist.addEventListener("change", save);
+    [title, artist].forEach(function (el) {
+      el.addEventListener("keydown", function (e) { if (e.key === "Enter") el.blur(); });
+    });
+
+    var audio = document.createElement("audio");
+    audio.controls = true;
+    audio.preload = "none";
+    audio.src = publicUrl(t.storage_path);
+
+    li.append(head, fields, audio, saved);
+    return li;
+  }
+
+  function button(text, label, onClick) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn small";
+    b.textContent = text;
+    b.setAttribute("aria-label", label);
+    b.addEventListener("click", onClick);
+    return b;
+  }
+  function input(value, placeholder, max) {
+    var el = document.createElement("input");
+    el.type = "text";
+    el.value = value;
+    el.placeholder = placeholder;
+    el.maxLength = max;
+    el.setAttribute("aria-label", placeholder);
+    return el;
+  }
+
+  // positions are rewritten to 0..n-1 in list order, touching only rows that change
+  async function move(i, dir) {
+    var j = i + dir;
+    if (j < 0 || j >= tracks.length) return;
+    var next = tracks.slice();
+    var tmp = next[i]; next[i] = next[j]; next[j] = tmp;
+    var changes = [];
+    next.forEach(function (t, k) { if (t.position !== k) changes.push({ t: t, k: k }); });
+    tracks = next;
+    renderTracks();
+    setStatus($("list-status"), "Saving order…");
+    var results = await Promise.all(changes.map(function (c) {
+      return sb.from("radio_tracks").update({ position: c.k }).eq("id", c.t.id);
+    }));
+    var failed = results.filter(function (r) { return r.error; });
+    if (failed.length) {
+      setStatus($("list-status"), "Couldn't save the order: " + failed[0].error.message, "err");
+      loadTracks();
+      return;
+    }
+    changes.forEach(function (c) { c.t.position = c.k; });
+    setStatus($("list-status"), "Order saved.", "ok");
+  }
+
+  async function remove(t, btn) {
+    if (!confirm("Delete “" + t.title + "”? It disappears from the radio for everyone.")) return;
+    btn.disabled = true;
+    setStatus($("list-status"), "Deleting…");
+    var st = await sb.storage.from(BUCKET).remove([t.storage_path]);
+    if (st.error) {
+      btn.disabled = false;
+      setStatus($("list-status"), "Couldn't delete the file: " + st.error.message, "err");
+      return;
+    }
+    var res = await sb.from("radio_tracks").delete().eq("id", t.id);
+    if (res.error) {
+      btn.disabled = false;
+      setStatus($("list-status"), "File removed but the track row wasn't: " + res.error.message, "err");
+      return;
+    }
+    setStatus($("list-status"), "Deleted.", "ok");
+    loadTracks();
+  }
+
+  // ------------------------------------------------------------- uploads
+  // XHR straight to the Storage REST endpoint rather than storage.upload(),
+  // purely for a real progress bar on a 20 MB file over mobile data.
+  function uploadWithProgress(path, file, contentType, token, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + path);
+      xhr.setRequestHeader("Authorization", "Bearer " + token);
+      xhr.setRequestHeader("apikey", SUPABASE_ANON);
+      xhr.setRequestHeader("Content-Type", contentType);
+      xhr.setRequestHeader("x-upsert", "false");
+      xhr.setRequestHeader("cache-control", "max-age=31536000");
+      xhr.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) { resolve(); return; }
+        var msg = "Upload failed (" + xhr.status + ")";
+        try { var j = JSON.parse(xhr.responseText); msg = j.message || j.error || msg; } catch (_) {}
+        reject(new Error(msg));
+      };
+      xhr.onerror = function () { reject(new Error("Network error — check your connection and try again.")); };
+      xhr.send(file);
+    });
+  }
+
+  function uploadRow(file) {
+    var li = document.createElement("li");
+    var name = document.createElement("div");
+    name.className = "name";
+    name.textContent = file.name;
+    var state = document.createElement("div");
+    state.className = "state";
+    var bar = document.createElement("div");
+    bar.className = "bar";
+    var fill = document.createElement("span");
+    bar.appendChild(fill);
+    li.append(name, state, bar);
+    $("uploads").prepend(li);
+    return {
+      set: function (text, kind) { state.textContent = text; state.className = "state" + (kind ? " " + kind : ""); },
+      progress: function (p) { fill.style.width = Math.round(p * 100) + "%"; },
+      done: function () { bar.remove(); }
+    };
+  }
+
+  async function addFile(file, position) {
+    var row = uploadRow(file);
+    var type = mimeOf(file);
+    if (!type) { row.set("Not a supported audio type (MP3, M4A, AAC or WAV).", "err"); row.done(); return false; }
+    if (file.size > MAX_BYTES) {
+      row.set("Too big: " + (file.size / 1048576).toFixed(1) + " MB (max 25 MB).", "err"); row.done(); return false;
+    }
+    var ext = extOf(file.name) || (type === "audio/mpeg" ? "mp3" : type.indexOf("wav") >= 0 ? "wav" : type === "audio/aac" ? "aac" : "m4a");
+    var path = "tracks/" + uuid() + "." + ext;
+    // fresh per file: a long batch can outlive the access token
+    var sess = await sb.auth.getSession();
+    var token = sess.data.session && sess.data.session.access_token;
+    if (!token) { row.set("Signed out — sign in again.", "err"); row.done(); return false; }
+    try {
+      row.set("Uploading…");
+      await uploadWithProgress(path, file, type, token, row.progress);
+    } catch (e) {
+      row.set(e.message, "err"); row.done(); return false;
+    }
+    row.set("Saving…");
+    var res = await sb.from("radio_tracks").insert({ title: titleFrom(file.name), storage_path: path, position: position });
+    if (res.error) {
+      // don't leave an orphaned file behind
+      await sb.storage.from(BUCKET).remove([path]);
+      row.set("Couldn't add the track: " + res.error.message, "err"); row.done(); return false;
+    }
+    row.progress(1);
+    row.set("Added", "ok");
+    row.done();
+    return true;
+  }
+
+  $("files").addEventListener("change", async function (e) {
+    var files = Array.prototype.slice.call(e.target.files || []);
+    e.target.value = "";
+    if (!files.length) return;
+    await loadTracks();
+    var next = tracks.reduce(function (m, t) { return Math.max(m, t.position); }, -1) + 1;
+    // one at a time: kinder to a phone's connection, and keeps the order
+    for (var i = 0; i < files.length; i++) {
+      if (await addFile(files[i], next)) next++;
+    }
+    loadTracks();
+  });
+
+  // ---------------------------------------------------------------- boot
+  sb.auth.getSession().then(function (r) {
+    var session = r.data.session;
+    if (!session) show("signin");
+    route(session);
+  });
+})();
+</script>
+</body>
+</html>

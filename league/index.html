@@ -180,6 +180,22 @@
   .strip span { padding: 0.3vw 0; border-bottom: 0.25vw solid transparent; }
   .strip span.on { color: var(--accent); border-bottom-color: var(--accent); }
 
+  /* ---------- Gym vs Gym slide (0077) ---------- */
+  .repcols { flex: 1; min-height: 0; display: flex; gap: 3vw; }
+  .repcol { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .repcol h3 {
+    font-family: var(--serif); font-weight: 500;
+    font-size: 2.6vw; font-size: min(2.6vw, 4.6vh);
+    color: var(--text); margin: 0.6vw 0 0.2vw;
+  }
+  .repcol .rows { flex: 0 1 auto; justify-content: flex-start; gap: 0.2vw; }
+  .repcol .row, .repcol .row.top { font-size: 2.3vw; font-size: min(2.3vw, 4.1vh); }
+  .row.self .name, .row.self .val { color: var(--accent); }
+  .repgap { color: var(--text-muted); text-align: center; font-size: 1.6vw; line-height: 1; }
+  .repnote { color: var(--text-muted); font-size: 1.5vw; margin: 0.8vw 0 0; }
+  /* a ninth label doesn't fit the strip at its normal size */
+  .strip.nine { gap: 1.3vw; font-size: 1.1vw; }
+
   /* ---------- Print (A4 portrait) ---------- */
   #print {
     --bg: #ffffff;
@@ -349,6 +365,17 @@
   var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
                 "August", "September", "October", "November", "December"];
   var MEDALS = { 1: "🥇", 2: "🥈", 3: "🥉" }; // 🥇🥈🥉
+  /* Gym vs Gym (0077): one extra TV slide after the eight boards, shown
+     only once league_public_rep_standings answers with this gym in it —
+     before the migration is applied (or for a coach community) it simply
+     never joins the rotation. Not part of the print sheet. */
+  var REP_SLIDE = { key: "rep", label: "Gym vs Gym" };
+  var REP_BOARDS = [
+    { key: "total",      label: "Most Rep" },
+    { key: "per_member", label: "Hardest Working" }
+  ];
+  var REP_MIN_MEMBERS = 5; // mirrors 0077's league_rep_rows
+  var REP_TOP = 5;
   var MINUS = "−";
 
   function normaliseCode(raw) {
@@ -401,6 +428,14 @@
   function monthISO(ym) { return ym.y + "-" + (ym.m < 10 ? "0" : "") + ym.m + "-01"; }
   function rankLabel(rank) { return MEDALS[rank] || String(rank); }
   function memberCount(n) { n = Number(n) || 0; return fmtNum(n) + (n === 1 ? " member" : " members"); }
+  // "12,340 Rep" / "86.2 Rep / member" (always one decimal: it's an average)
+  function fmtRep(board, v) {
+    var n = Number(v) || 0;
+    if (board === "total") return fmtNum(Math.round(n)) + " Rep";
+    var parts = Math.abs(n).toFixed(1).split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".") + " Rep / member";
+  }
   // --- end helpers ---
 
   // ---------- params ----------
@@ -411,8 +446,9 @@
   var mode = flag("poster") ? "poster" : flag("print") ? "print" : "tv";
   var pinnedIdx = -1;
   BOARDS.forEach(function (b, i) { if (b.key === params.get("board")) pinnedIdx = i; });
+  if (params.get("board") === REP_SLIDE.key) pinnedIdx = BOARDS.length; // falls back to 0 if the slide isn't available
 
-  var state = { info: null, boards: {}, winners: null, loaded: false };
+  var state = { info: null, boards: {}, winners: null, rep: null, repWinners: [], loaded: false };
   var activeIdx = pinnedIdx >= 0 ? pinnedIdx : 0;
   var layers = [document.getElementById("layer-a"), document.getElementById("layer-b")];
   var curLayer = 0;
@@ -476,11 +512,23 @@
       calls.push(month
         ? rpc("league_public_winners", { p_slug: slug, p_month: monthISO(prevMonth(month)) })
         : Promise.resolve([]));
+      /* Gym vs Gym is optional: its own catch, so a missing RPC (0077 not
+         applied yet) drops the slide instead of the whole screen */
+      calls.push(rpc("league_public_rep_standings", { p_slug: slug })
+        .catch(function () { return null; }));
+      calls.push(rpc("league_public_rep_battle_winners", { p_slug: slug })
+        .catch(function () { return []; }));
       return Promise.all(calls).then(function (results) {
         var boards = {};
         BOARDS.forEach(function (b, i) { boards[b.key] = Array.isArray(results[i]) ? results[i] : []; });
         var winners = results[BOARDS.length];
-        return { info: info, boards: boards, winners: Array.isArray(winners) ? winners : [] };
+        var rep = results[BOARDS.length + 1];
+        var repWinners = results[BOARDS.length + 2];
+        return {
+          info: info, boards: boards, winners: Array.isArray(winners) ? winners : [],
+          rep: Array.isArray(rep) ? rep : null,
+          repWinners: Array.isArray(repWinners) ? repWinners : []
+        };
       });
     });
   }
@@ -499,7 +547,70 @@
     if (b.key === "improved") return "Biggest gain on a lift this month";
     return "";
   }
+  // the TV rotation: the eight boards, plus Gym vs Gym when it has data
+  function repAvailable() {
+    return !!(state.rep && state.rep.some(function (r) { return r.is_self; }));
+  }
+  function slides() {
+    return repAvailable() ? BOARDS.concat([REP_SLIDE]) : BOARDS;
+  }
+  function repColumn(board) {
+    var col = el("div", "repcol");
+    col.appendChild(el("h3", null, board.label));
+    var rows = state.rep.filter(function (r) {
+      return board.key === "total" ? r.total_rank != null : r.per_member_rank != null;
+    }).sort(function (a, b) {
+      return board.key === "total" ? a.total_rank - b.total_rank : a.per_member_rank - b.per_member_rank;
+    });
+    var self = null;
+    state.rep.forEach(function (r) { if (r.is_self) self = r; });
+    var list = el("div", "rows");
+    var addRow = function (r) {
+      var rank = board.key === "total" ? r.total_rank : r.per_member_rank;
+      var row = el("div", "row" + (rank <= 3 ? " top" : "") + (r.is_self ? " self" : ""));
+      row.appendChild(el("span", "rank", rankLabel(rank)));
+      row.appendChild(el("span", "name", r.name || "—"));
+      row.appendChild(el("span", "val", fmtRep(board.key, board.key === "total" ? r.total_rep : r.per_member)));
+      list.appendChild(row);
+    };
+    rows.slice(0, REP_TOP).forEach(addRow);
+    var selfRank = self ? (board.key === "total" ? self.total_rank : self.per_member_rank) : null;
+    if (self && selfRank != null && selfRank > REP_TOP) {
+      list.appendChild(el("div", "repgap", "⋯"));
+      addRow(self);
+    }
+    if (!rows.length) list.appendChild(el("div", "empty", "No gym ranked yet"));
+    col.appendChild(list);
+    if (board.key === "per_member" && self && selfRank == null) {
+      col.appendChild(el("p", "repnote",
+        "Gyms need " + REP_MIN_MEMBERS + "+ members to rank here — " + memberCount(self.members) + " this month"));
+    }
+    return col;
+  }
+  // "Gym of the Month · August — Most Rep (12,340 Rep)" when this gym won
+  // either board last month; otherwise what the slide is about
+  function repSubtitle() {
+    var mine = state.repWinners.filter(function (w) { return w.is_self; });
+    if (mine.length) {
+      var m = monthName(parseMonth(mine[0].month));
+      return "🏆 Gym of the Month · " + m + " — " + mine.map(function (w) {
+        var b = w.board === "total" ? REP_BOARDS[0] : REP_BOARDS[1];
+        return b.label + " (" + fmtRep(b.key, w.value) + ")";
+      }).join(" · ");
+    }
+    var cur = state.info ? monthName(parseMonth(state.info.month)) : "";
+    return "Every WHAM gym, ranked on the Rep its members earn" + (cur ? " in " + cur : "");
+  }
+  function renderRep(layer) {
+    clear(layer);
+    layer.appendChild(el("h2", "btitle", REP_SLIDE.label));
+    layer.appendChild(el("p", "bsub", repSubtitle()));
+    var cols = el("div", "repcols");
+    REP_BOARDS.forEach(function (b) { cols.appendChild(repColumn(b)); });
+    layer.appendChild(cols);
+  }
   function renderBoard(layer, idx) {
+    if (idx >= BOARDS.length) { renderRep(layer); return; }
     var b = BOARDS[idx];
     var rows = (state.boards[b.key] || []).slice(0, 10);
     var metric = state.info ? state.info.challenge_metric : null;
@@ -525,7 +636,8 @@
   function renderStrip(idx) {
     var strip = document.getElementById("strip");
     clear(strip);
-    BOARDS.forEach(function (b, i) {
+    strip.classList.toggle("nine", slides().length > BOARDS.length);
+    slides().forEach(function (b, i) {
       strip.appendChild(el("span", i === idx ? "on" : "", b.label));
     });
   }
@@ -540,6 +652,8 @@
   }
   // Crossfade: paint the next board into the hidden layer, then swap opacity.
   function showBoard(idx, fade) {
+    // the Gym vs Gym slide can drop out between refreshes
+    if (idx >= slides().length) idx = 0;
     activeIdx = idx;
     if (fade) {
       var next = 1 - curLayer;
@@ -691,6 +805,8 @@
     state.info = data.info;
     state.boards = data.boards;
     state.winners = data.winners;
+    state.rep = data.rep;
+    state.repWinners = data.repWinners;
     state.loaded = true;
     renderHeader();
     renderPrint();
@@ -746,7 +862,7 @@
     if (mode === "tv" && pinnedIdx < 0) {
       setInterval(function () {
         if (!state.loaded) return;
-        showBoard((activeIdx + 1) % BOARDS.length, true);
+        showBoard((activeIdx + 1) % slides().length, true);
       }, ROTATE_MS);
     }
   })();
