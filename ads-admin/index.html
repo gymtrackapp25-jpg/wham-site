@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WHAM Billboards admin</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14110D">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+    --danger: #E0735A;
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px 16px 48px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  [hidden] { display: none !important; }
+  main { max-width: 560px; margin: 0 auto; }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.7rem, 7.5vw, 2.2rem);
+    line-height: 1.15;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.25rem;
+    margin: 2rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h3 { font-family: var(--serif); font-weight: 500; font-size: 1.1rem; margin: 0; }
+  p { line-height: 1.55; }
+  .muted { color: var(--text-muted); }
+  .small { font-size: 0.9rem; }
+  .status { min-height: 1.5em; color: var(--text-muted); margin: 0.6rem 0; }
+  .status.err { color: var(--danger); }
+  .status.ok { color: var(--accent); }
+
+  label { display: block; font-size: 0.85rem; color: var(--text-muted); margin: 0 0 6px; }
+  input[type=email], input[type=password], input[type=text], input[type=url] {
+    width: 100%;
+    font: inherit;
+    font-size: 16px; /* ≥16px or iOS Safari zooms on focus */
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 12px 14px;
+    outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  .field { margin: 0 0 14px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--rule);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.985); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #14110D; }
+  .btn.block { width: 100%; }
+  .btn.small { min-height: 40px; padding: 8px 12px; font-size: 0.9rem; }
+  .btn.danger { color: var(--danger); }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+
+  .note {
+    background: var(--accent-soft);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin: 0 0 1rem;
+  }
+  .who { font-size: 0.9rem; color: var(--text-muted); overflow-wrap: anywhere; }
+
+  /* slot cards */
+  .slots { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+  .slot {
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .slot .where { font-size: 0.88rem; color: var(--text-muted); margin: 4px 0 10px; line-height: 1.45; }
+  .slot .warn { color: var(--danger); }
+  .pill {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .pill.live { color: var(--accent); border-color: var(--accent); }
+  /* the billboards draw the art contain-fit on dark — so does this */
+  .preview {
+    position: relative;
+    width: 100%;
+    background: #07090D;
+    border: 1px dashed var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0 0 10px;
+  }
+  .preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .preview .empty {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 8px;
+  }
+  .spec { font-family: var(--mono); font-size: 0.8rem; color: var(--text-muted); margin: 0 0 12px; }
+  .slot .fields { display: flex; flex-direction: column; gap: 8px; margin: 0 0 10px; }
+  .slot input[type=text], .slot input[type=url] { padding: 9px 12px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--text); margin: 0; }
+  .check input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .picker { position: relative; }
+  .picker input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+  .bar { height: 4px; background: var(--rule); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.15s; }
+  .saved { font-size: 0.85rem; color: var(--text-muted); min-height: 1.3em; margin-top: 8px; overflow-wrap: anywhere; }
+  .saved.err { color: var(--danger); }
+  .saved.ok { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">WHAM Billboards</p>
+  <h1>Sponsor ads</h1>
+
+  <!-- signed out -->
+  <section id="signin" hidden>
+    <p class="muted">Staff only. Sign in with your WHAM account.</p>
+    <form id="signin-form" class="stack" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" inputmode="email" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password">
+      </div>
+      <button class="btn primary block" type="submit" id="signin-btn">Sign in</button>
+      <button class="btn block" type="button" id="link-btn">Email me a sign-in link</button>
+    </form>
+    <p id="signin-status" class="status" aria-live="polite"></p>
+  </section>
+
+  <!-- signed in, not staff -->
+  <section id="notstaff" hidden>
+    <p>This page is for WHAM staff.</p>
+    <p class="who" id="notstaff-who"></p>
+    <button class="btn" type="button" data-signout>Sign out</button>
+  </section>
+
+  <!-- staff -->
+  <section id="staff" hidden>
+    <div class="row">
+      <span class="who spacer" id="staff-who"></span>
+      <button class="btn small" type="button" data-signout>Sign out</button>
+    </div>
+
+    <h2>Billboards</h2>
+    <p class="note">Each ad shows on every WHAM phone, signed in or not, within about 10&nbsp;minutes
+      (next time the app comes back to the front). The art is drawn <strong>contain-fit</strong> &mdash;
+      nothing is cropped or stretched. On the building sign the spare space is dark; on the three wall
+      billboards it's see-through (the night sky / wall shows, and a transparent PNG floats like WHAM's
+      own signs). Either way a logo on black at the slot's shape looks best. Tapping an ad with a link asks
+      &ldquo;Visit &lt;name&gt;?&rdquo; before opening it.</p>
+    <p class="muted small">JPEG, PNG or WebP, up to 8&nbsp;MB. Around 1200&ndash;1600&nbsp;px wide is plenty &mdash;
+      phones decode the whole image, so bigger only costs memory.</p>
+    <p id="list-status" class="status" aria-live="polite"></p>
+    <ul class="slots" id="slots"></ul>
+  </section>
+
+  <p id="boot" class="status">Loading&hellip;</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Public by design: RLS (0084_billboard_links.sql) is the gate — only
+  // wham_staff rows can write ad_billboards or the `ad-billboards` bucket.
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var REDIRECT = "https://getwham.app/ads-admin/";
+  var BUCKET = "ad-billboards";
+  var MAX_BYTES = 8 * 1024 * 1024;
+  // must match the bucket's allowed_mime_types
+  var ALLOWED = ["image/jpeg", "image/png", "image/webp"];
+  var BY_EXT = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
+  var EXT_OF = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+  // same rule as the table's ad_billboards_link_url_check and the app's isValidAdLink
+  var LINK_RE = /^https?:\/\/[^\s/?#]+[^\s]*$/i;
+  var LINK_MAX = 500;
+  var NAME_MAX = 80;
+
+  // Where each slot actually is, and the shape it's drawn at — all read off
+  // the app's floor code (src/floor/WallDisplays.tsx: AW×AD_H = 432×220 and
+  // BW×BD_H = 408×230; src/floor/RooftopBase.tsx + billboardHit.ts: the
+  // wall image's sign box, 0.669 × 0.16 of a 1680×3902 face ≈ 1124×624).
+  var SLOTS = [
+    { slot: "billboard1", title: "Back wall · left billboard",
+      where: "High on the back wall (the one facing you, right of the corner), above the left of the two stat panels — the one nearest the corner clock.",
+      w: 432, h: 220, rec: "1300 × 660" },
+    { slot: "billboard2", title: "Back wall · right billboard",
+      where: "High on the back wall, above the right-hand stat panel, next to the left billboard.",
+      w: 432, h: 220, rec: "1300 × 660" },
+    { slot: "billboard3", title: "Left wall · top billboard",
+      where: "Top row of the left wall, the far end from the corner — beside the muscle heatmap, above the weekly leaderboard.",
+      w: 408, h: 230, rec: "1230 × 690" },
+    { slot: "whamBillboard1", title: "Building · right face",
+      where: "The big sign on the right-hand face of the tower the gym sits on (below the Muscle Map / Calisthenics / Progress plaques). Rooftop scene only — pan down past the floor's front edge.",
+      w: 1124, h: 624, rec: "1600 × 890" },
+    { slot: "whamBillboard2", title: "Building · left face",
+      where: "The left-hand face of the tower.",
+      warn: "Currently NOT shown: the building's photo façade has no sign on this face, so the app only draws it for a moment while that photo loads. Anything put here is effectively invisible — use Building · right face instead.",
+      w: 640, h: 355, rec: "1600 × 890" }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    // implicit: a magic link opened from the Mail app lands in Safari with
+    // the session in the URL hash, no code verifier needed
+    auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+  });
+
+  var rows = {};       // slot → billboard_stats() row
+  var shownFor = null; // user id the current view was built for
+
+  function show(id) {
+    ["signin", "notstaff", "staff"].forEach(function (s) { $(s).hidden = s !== id; });
+    $("boot").hidden = true;
+  }
+  function setStatus(el, text, kind) {
+    el.textContent = text || "";
+    el.className = "status" + (kind ? " " + kind : "");
+  }
+  function publicUrl(path) { return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl; }
+  // an image_url that lives in our bucket → its object path (null for an
+  // external URL someone pasted in the dashboard — never deleted from here)
+  function pathOf(url) {
+    var prefix = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/";
+    return url && url.indexOf(prefix) === 0 ? decodeURIComponent(url.slice(prefix.length).split("?")[0]) : null;
+  }
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0;
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+    });
+  }
+  function extOf(name) {
+    var m = /\.([a-z0-9]+)$/i.exec(name || "");
+    return m ? m[1].toLowerCase() : "";
+  }
+  function mimeOf(file) {
+    var t = (file.type || "").toLowerCase();
+    if (ALLOWED.indexOf(t) >= 0) return t;
+    return BY_EXT[extOf(file.name)] || null;
+  }
+  function imageSize(file) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () { URL.revokeObjectURL(url); resolve({ w: img.naturalWidth, h: img.naturalHeight }); };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    return isNaN(d) ? "" : d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  // ---------------------------------------------------------------- auth
+  async function route(session) {
+    if (!session) { shownFor = null; show("signin"); return; }
+    if (shownFor === session.user.id) return;
+    shownFor = session.user.id;
+    var who = "Signed in as " + (session.user.email || "your account");
+    var res = await sb.rpc("wham_is_staff");
+    if (res.error || res.data !== true) {
+      $("notstaff-who").textContent = who;
+      show("notstaff");
+      return;
+    }
+    $("staff-who").textContent = who;
+    show("staff");
+    loadSlots();
+  }
+
+  $("signin-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var email = $("email").value.trim();
+    var password = $("password").value;
+    if (!email || !password) { setStatus($("signin-status"), "Enter your email and password.", "err"); return; }
+    $("signin-btn").disabled = true;
+    setStatus($("signin-status"), "Signing in…");
+    var res = await sb.auth.signInWithPassword({ email: email, password: password });
+    $("signin-btn").disabled = false;
+    if (res.error) { setStatus($("signin-status"), res.error.message, "err"); return; }
+    setStatus($("signin-status"), "");
+    route(res.data.session);
+  });
+
+  $("link-btn").addEventListener("click", async function () {
+    var email = $("email").value.trim();
+    if (!email) { setStatus($("signin-status"), "Enter your email first.", "err"); return; }
+    $("link-btn").disabled = true;
+    setStatus($("signin-status"), "Sending…");
+    var res = await sb.auth.signInWithOtp({
+      email: email,
+      options: { shouldCreateUser: false, emailRedirectTo: REDIRECT }
+    });
+    $("link-btn").disabled = false;
+    if (res.error) { setStatus($("signin-status"), res.error.message, "err"); return; }
+    setStatus($("signin-status"), "Check your email for a sign-in link, then open it on this device.", "ok");
+  });
+
+  document.querySelectorAll("[data-signout]").forEach(function (b) {
+    b.addEventListener("click", async function () {
+      await sb.auth.signOut();
+      rows = {};
+      $("slots").textContent = "";
+      route(null);
+    });
+  });
+
+  sb.auth.onAuthStateChange(function (_event, session) {
+    // defer: calling Supabase from inside the callback can deadlock the auth lock
+    setTimeout(function () { route(session); }, 0);
+  });
+
+  // --------------------------------------------------------------- slots
+  async function loadSlots() {
+    setStatus($("list-status"), "Loading billboards…");
+    var res = await sb.rpc("billboard_stats");
+    if (res.error) {
+      var msg = res.error.message;
+      if (/billboard_stats/.test(msg)) msg = "the 0084 migration hasn't been applied yet (" + msg + ")";
+      setStatus($("list-status"), "Couldn't load billboards: " + msg, "err");
+      return;
+    }
+    rows = {};
+    (res.data || []).forEach(function (r) { rows[r.slot] = r; });
+    setStatus($("list-status"), "");
+    renderSlots();
+  }
+
+  function renderSlots() {
+    var list = $("slots");
+    list.textContent = "";
+    SLOTS.forEach(function (s) { list.appendChild(slotCard(s, rows[s.slot] || null)); });
+  }
+
+  function slotCard(s, row) {
+    var li = document.createElement("li");
+    li.className = "slot";
+
+    var head = document.createElement("div");
+    head.className = "row";
+    var title = document.createElement("h3");
+    title.className = "spacer";
+    title.textContent = s.title;
+    var pill = document.createElement("span");
+    pill.className = "pill" + (row && row.active ? " live" : "");
+    pill.textContent = !row ? "Empty" : row.active ? "Live" : "Paused";
+    head.append(title, pill);
+
+    var where = document.createElement("p");
+    where.className = "where";
+    where.textContent = s.where;
+    if (s.warn) {
+      var warn = document.createElement("span");
+      warn.className = "warn";
+      warn.textContent = " " + s.warn;
+      where.appendChild(warn);
+    }
+
+    var preview = document.createElement("div");
+    preview.className = "preview";
+    preview.style.aspectRatio = s.w + " / " + s.h;
+    if (row) {
+      var img = document.createElement("img");
+      img.alt = row.sponsor_name ? row.sponsor_name + " ad" : "Current ad";
+      img.src = row.image_url;
+      preview.appendChild(img);
+    } else {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "No ad — the app shows WHAM's own art here.";
+      preview.appendChild(empty);
+    }
+
+    var spec = document.createElement("p");
+    spec.className = "spec";
+    spec.textContent = "Shape " + (s.w / s.h).toFixed(2) + " : 1 · recommended " + s.rec + " px" +
+      (row ? " · " + (row.taps || 0) + " link tap" + (row.taps === 1 ? "" : "s") : "") +
+      (row && row.updated_at ? " · updated " + fmtDate(row.updated_at) : "");
+
+    var fields = document.createElement("div");
+    fields.className = "fields";
+    var name = input("text", row ? row.sponsor_name || "" : "", "Sponsor name (e.g. ST Details)", NAME_MAX);
+    var link = input("url", row ? row.link_url || "" : "", "Link (https://…) — optional", LINK_MAX);
+    link.inputMode = "url";
+    link.autocapitalize = "off";
+    link.spellcheck = false;
+    var activeLbl = document.createElement("label");
+    activeLbl.className = "check";
+    var active = document.createElement("input");
+    active.type = "checkbox";
+    active.checked = row ? !!row.active : true;
+    activeLbl.append(active, document.createTextNode("Show this ad in the app"));
+    fields.append(name, link, activeLbl);
+
+    var saved = document.createElement("div");
+    saved.className = "saved";
+    function say(text, kind) { saved.textContent = text || ""; saved.className = "saved" + (kind ? " " + kind : ""); }
+
+    // "" → null, a bad link → false (with the reason already shown)
+    function readLink() {
+      var v = link.value.trim();
+      if (!v) return null;
+      if (!/^https?:\/\//i.test(v) && /^[^\s/]+\.[^\s]+$/.test(v)) { v = "https://" + v; link.value = v; }
+      if (v.length > LINK_MAX || !LINK_RE.test(v)) { say("The link must be a full web address starting with https:// (or http://).", "err"); return false; }
+      return v;
+    }
+
+    var actions = document.createElement("div");
+    actions.className = "row";
+
+    var picker = document.createElement("div");
+    picker.className = "picker spacer";
+    var pickBtn = document.createElement("button");
+    pickBtn.type = "button";
+    pickBtn.className = "btn primary block";
+    pickBtn.tabIndex = -1;
+    pickBtn.textContent = row ? "Replace image" : "Upload image";
+    var file = document.createElement("input");
+    file.type = "file";
+    file.accept = "image/jpeg,image/png,image/webp";
+    file.setAttribute("aria-label", pickBtn.textContent + " for " + s.title);
+    picker.append(pickBtn, file);
+
+    var save = button("Save", "Save " + s.title, async function () {
+      if (!row) return;
+      var l = readLink();
+      if (l === false) return;
+      save.disabled = true;
+      say("Saving…");
+      var res = await sb.from("ad_billboards").update({
+        sponsor_name: name.value.trim() || null,
+        link_url: l,
+        active: active.checked
+      }).eq("slot", s.slot);
+      save.disabled = false;
+      if (res.error) { say("Couldn't save: " + res.error.message, "err"); return; }
+      await loadSlots();
+    });
+    save.disabled = !row;
+
+    var remove = button("Remove ad", "Remove the ad from " + s.title, async function () {
+      if (!row) return;
+      if (!confirm("Remove the ad from “" + s.title + "”? WHAM's own art comes back, and its tap count resets.")) return;
+      remove.disabled = true;
+      say("Removing…");
+      var res = await sb.from("ad_billboards").delete().eq("slot", s.slot);
+      if (res.error) { remove.disabled = false; say("Couldn't remove: " + res.error.message, "err"); return; }
+      var old = pathOf(row.image_url);
+      if (old) await sb.storage.from(BUCKET).remove([old]); // best-effort tidy-up; the row is what the app reads
+      await loadSlots();
+    });
+    remove.classList.add("danger");
+    remove.disabled = !row;
+
+    actions.append(picker, save, remove);
+
+    file.addEventListener("change", async function (e) {
+      var f = (e.target.files || [])[0];
+      e.target.value = "";
+      if (!f) return;
+      var l = readLink();
+      if (l === false) return;
+      var type = mimeOf(f);
+      if (!type) { say("Not a supported image (JPEG, PNG or WebP).", "err"); return; }
+      if (f.size > MAX_BYTES) { say("Too big: " + (f.size / 1048576).toFixed(1) + " MB (max 8 MB).", "err"); return; }
+      var dims = await imageSize(f);
+      var path = s.slot + "/" + uuid() + "." + (EXT_OF[type] || extOf(f.name));
+      // fresh token per upload, same as radio-admin
+      var sess = await sb.auth.getSession();
+      var token = sess.data.session && sess.data.session.access_token;
+      if (!token) { say("Signed out — sign in again.", "err"); return; }
+      var bar = document.createElement("div");
+      bar.className = "bar";
+      var fill = document.createElement("span");
+      bar.appendChild(fill);
+      li.appendChild(bar);
+      pickBtn.disabled = save.disabled = remove.disabled = true;
+      say("Uploading…");
+      try {
+        await uploadWithProgress(path, f, type, token, function (p) { fill.style.width = Math.round(p * 100) + "%"; });
+      } catch (err) {
+        bar.remove();
+        pickBtn.disabled = false; save.disabled = remove.disabled = !row;
+        say(err.message, "err");
+        return;
+      }
+      say("Saving…");
+      var res = await sb.from("ad_billboards").upsert({
+        slot: s.slot,
+        image_url: publicUrl(path),
+        sponsor_name: name.value.trim() || null,
+        link_url: l,
+        active: active.checked
+      }, { onConflict: "slot" });
+      bar.remove();
+      if (res.error) {
+        await sb.storage.from(BUCKET).remove([path]); // don't leave an orphaned file behind
+        pickBtn.disabled = false; save.disabled = remove.disabled = !row;
+        say("Couldn't save the ad: " + res.error.message, "err");
+        return;
+      }
+      var old = row && pathOf(row.image_url);
+      if (old && old !== path) await sb.storage.from(BUCKET).remove([old]);
+      await loadSlots();
+      if (dims && dims.w > 2400) {
+        setStatus($("list-status"), s.title + ": uploaded, but it's " + dims.w + " px wide — a ~1600 px version would load faster on phones.", "ok");
+      }
+    });
+
+    [name, link].forEach(function (el) {
+      el.addEventListener("keydown", function (e) { if (e.key === "Enter") { el.blur(); if (row) save.click(); } });
+    });
+
+    li.append(head, where, preview, spec, fields, actions, saved);
+    if (!row) say("Upload an image first; the name, link and switch above are saved with it.");
+    return li;
+  }
+
+  function button(text, label, onClick) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn small";
+    b.textContent = text;
+    b.setAttribute("aria-label", label);
+    b.addEventListener("click", onClick);
+    return b;
+  }
+  function input(type, value, placeholder, max) {
+    var el = document.createElement("input");
+    el.type = type;
+    el.value = value;
+    el.placeholder = placeholder;
+    el.maxLength = max;
+    el.setAttribute("aria-label", placeholder);
+    return el;
+  }
+
+  // ------------------------------------------------------------- uploads
+  // XHR straight to the Storage REST endpoint rather than storage.upload(),
+  // for a real progress bar over mobile data (same as radio-admin).
+  function uploadWithProgress(path, file, contentType, token, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + path);
+      xhr.setRequestHeader("Authorization", "Bearer " + token);
+      xhr.setRequestHeader("apikey", SUPABASE_ANON);
+      xhr.setRequestHeader("Content-Type", contentType);
+      xhr.setRequestHeader("x-upsert", "false");
+      // every upload gets a fresh uuid path, so the object never changes
+      xhr.setRequestHeader("cache-control", "max-age=31536000");
+      xhr.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) { resolve(); return; }
+        var msg = "Upload failed (" + xhr.status + ")";
+        try { var j = JSON.parse(xhr.responseText); msg = j.message || j.error || msg; } catch (_) {}
+        reject(new Error(msg));
+      };
+      xhr.onerror = function () { reject(new Error("Network error — check your connection and try again.")); };
+      xhr.send(file);
+    });
+  }
+
+  // ---------------------------------------------------------------- boot
+  sb.auth.getSession().then(function (r) {
+    var session = r.data.session;
+    if (!session) show("signin");
+    route(session);
+  });
+})();
+</script>
+</body>
+</html>
