@@ -474,18 +474,29 @@
       if (len < MIN_PLAY) { msg("The end must be at least " + MIN_PLAY + " s after the start.", true); return; }
       play = len; draw(); persist();
     });
-    var preview = button("▶ Preview clip", "Play just the clip", function () {
-      if (previewing) { stopPreview(); audio.pause(); return; }
-      previewing = true;
-      preview.textContent = "■ Stop preview";
-      audio.currentTime = start || 0;
+    // both previews stop at the clip's end; "end" starts a few seconds before it
+    var END_PREVIEW = 8;
+    function clipStop() { return play !== null ? (start || 0) + play : dur; }
+    function startPreview(btn, from) {
+      var was = previewing;
+      if (previewing) { stopPreview(); audio.pause(); }
+      if (was === btn) return; // second tap on the same button = stop
+      previewing = btn;
+      btn.textContent = "■ Stop";
+      audio.currentTime = Math.max(0, from);
       audio.play();
+    }
+    var preview = button("▶ Preview clip", "Play just the clip", function () {
+      startPreview(preview, start || 0);
+    });
+    var previewEnd = button("▶ Preview end", "Play the last few seconds of the clip", function () {
+      startPreview(previewEnd, Math.max(start || 0, clipStop() - END_PREVIEW));
     });
     var whole = button("Whole track", "Play the whole track", function () {
       start = null; play = null; draw(); persist();
     });
-    actions.append(setStart, setEnd, preview, whole);
-    [setStart, setEnd, preview, whole].forEach(function (b) { b.disabled = true; });
+    actions.append(setStart, setEnd, preview, previewEnd, whole);
+    [setStart, setEnd, preview, previewEnd, whole].forEach(function (b) { b.disabled = true; });
     box.append(label, timeline, grid, actions);
 
     var dur = 0;
@@ -499,7 +510,11 @@
       saved.className = "saved" + (err ? " err" : "");
       saved.textContent = text;
     }
-    function stopPreview() { previewing = false; preview.textContent = "▶ Preview clip"; }
+    function stopPreview() {
+      previewing = false;
+      preview.textContent = "▶ Preview clip";
+      previewEnd.textContent = "▶ Preview end";
+    }
     function draw() {
       var s0 = start || 0;
       var len = play !== null ? play : Math.max(0, dur - s0);
@@ -561,14 +576,14 @@
       if (!dur) return;
       if (start !== null) start = Math.min(start, Math.max(0, dur - MIN_PLAY));
       if (play !== null) play = Math.min(play, dur - (start || 0));
-      [startS.range, playS.range, setStart, setEnd, preview, whole].forEach(function (el) { el.disabled = false; });
+      [startS.range, playS.range, setStart, setEnd, preview, previewEnd, whole].forEach(function (el) { el.disabled = false; });
       draw();
     });
     audio.addEventListener("timeupdate", function () {
       if (dur) playhead.style.left = (audio.currentTime / dur * 100) + "%";
-      if (previewing && play !== null && audio.currentTime >= (start || 0) + play) { audio.pause(); stopPreview(); }
+      if (previewing && play !== null && audio.currentTime >= clipStop()) { stopPreview(); audio.pause(); }
     });
-    audio.addEventListener("pause", function () { if (previewing) stopPreview(); });
+    audio.addEventListener("pause", function () { if (previewing && audio.paused) stopPreview(); });
     audio.addEventListener("ended", stopPreview);
 
     draw();
