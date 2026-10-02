@@ -152,6 +152,18 @@
   .track .saved { font-size: 0.8rem; color: var(--text-muted); min-height: 1.2em; }
   .track .saved.err { color: var(--danger); }
   .empty { color: var(--text-muted); text-align: center; padding: 24px 0; }
+
+  /* clip: which part of the track the app plays */
+  .clip { border-top: 1px solid var(--rule); margin-top: 6px; padding-top: 10px; }
+  .clip .label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 8px; }
+  .clip .timeline { position: relative; height: 10px; background: var(--rule); border-radius: 5px; margin: 4px 0 12px; overflow: hidden; }
+  .clip .timeline .sel { position: absolute; top: 0; bottom: 0; background: var(--accent); opacity: 0.85; }
+  .clip .timeline .head { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text); }
+  .clip .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .clip .grid input[type=range] { width: 100%; accent-color: var(--accent); }
+  .clip .val { font-family: var(--mono); font-size: 0.95rem; }
+  .clip .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .clip .actions .btn { flex: 1 1 auto; }
 </style>
 </head>
 <body>
@@ -330,7 +342,7 @@
   async function loadTracks() {
     setStatus($("list-status"), "Loading tracks…");
     var res = await sb.from("radio_tracks")
-      .select("id, title, artist, storage_path, position, created_at")
+      .select("*")
       .order("position", { ascending: true })
       .order("created_at", { ascending: true });
     if (res.error) { setStatus($("list-status"), "Couldn't load tracks: " + res.error.message, "err"); return; }
@@ -403,11 +415,164 @@
 
     var audio = document.createElement("audio");
     audio.controls = true;
-    audio.preload = "none";
+    audio.preload = "metadata"; // enough to know the length for the clip sliders
     audio.src = publicUrl(t.storage_path);
 
-    li.append(head, fields, audio, saved);
+    li.append(head, fields, audio, clipEditor(t, audio), saved);
     return li;
+  }
+
+  // -------------------------------------------------------------- clips
+  // Non-destructive (0090): the file stays whole; the app seeks to start_sec
+  // and moves to the next track after play_sec. Both null = whole track.
+  var MIN_PLAY = 5;
+  function fmt(sec) {
+    sec = Math.max(0, Math.round(sec || 0));
+    return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+  }
+  function clipEditor(t, audio) {
+    var box = document.createElement("div");
+    box.className = "clip";
+    var label = document.createElement("p");
+    label.className = "label";
+    var timeline = document.createElement("div");
+    timeline.className = "timeline";
+    var sel = document.createElement("div");
+    sel.className = "sel";
+    var playhead = document.createElement("div");
+    playhead.className = "head";
+    timeline.append(sel, playhead);
+
+    function slider(title) {
+      var wrap = document.createElement("div");
+      var l = document.createElement("label");
+      var val = document.createElement("span");
+      val.className = "val";
+      l.append(title + " ", val);
+      var r = document.createElement("input");
+      r.type = "range"; r.min = "0"; r.step = "1"; r.disabled = true;
+      r.setAttribute("aria-label", title);
+      wrap.append(l, r);
+      return { wrap: wrap, range: r, val: val };
+    }
+    var startS = slider("Start at");
+    var playS = slider("Play for");
+    var grid = document.createElement("div");
+    grid.className = "grid";
+    grid.append(startS.wrap, playS.wrap);
+
+    var actions = document.createElement("div");
+    actions.className = "actions";
+    var setStart = button("Start here", "Set the start to the player's current time", function () {
+      start = Math.min(Math.floor(audio.currentTime), dur - MIN_PLAY);
+      if (play !== null) play = Math.max(MIN_PLAY, Math.min(play, dur - start));
+      draw(); persist();
+    });
+    var setEnd = button("End here", "Set the end to the player's current time", function () {
+      var s0 = start || 0;
+      var len = Math.round(audio.currentTime - s0);
+      if (len < MIN_PLAY) { msg("The end must be at least " + MIN_PLAY + " s after the start.", true); return; }
+      play = len; draw(); persist();
+    });
+    var preview = button("▶ Preview clip", "Play just the clip", function () {
+      if (previewing) { stopPreview(); audio.pause(); return; }
+      previewing = true;
+      preview.textContent = "■ Stop preview";
+      audio.currentTime = start || 0;
+      audio.play();
+    });
+    var whole = button("Whole track", "Play the whole track", function () {
+      start = null; play = null; draw(); persist();
+    });
+    actions.append(setStart, setEnd, preview, whole);
+    [setStart, setEnd, preview, whole].forEach(function (b) { b.disabled = true; });
+    box.append(label, timeline, grid, actions);
+
+    var dur = 0;
+    var start = t.start_sec != null ? Number(t.start_sec) : null;
+    var play = t.play_sec != null ? Number(t.play_sec) : null;
+    var previewing = false;
+
+    function msg(text, err) {
+      var saved = box.parentNode && box.parentNode.querySelector(".saved");
+      if (!saved) return;
+      saved.className = "saved" + (err ? " err" : "");
+      saved.textContent = text;
+    }
+    function stopPreview() { previewing = false; preview.textContent = "▶ Preview clip"; }
+    function draw() {
+      var s0 = start || 0;
+      var len = play !== null ? play : Math.max(0, dur - s0);
+      var whole = start === null && play === null;
+      label.textContent = whole
+        ? "Plays: whole track" + (dur ? " (" + fmt(dur) + ")" : "")
+        : "Plays: " + fmt(s0) + " → " + fmt(s0 + len) + " (" + fmt(len) + ")";
+      startS.val.textContent = fmt(s0);
+      playS.val.textContent = play !== null ? fmt(play) : "to the end";
+      if (dur) {
+        startS.range.max = String(Math.max(0, Math.floor(dur - MIN_PLAY)));
+        startS.range.value = String(s0);
+        playS.range.min = String(MIN_PLAY);
+        playS.range.max = String(Math.max(MIN_PLAY, Math.floor(dur - s0)));
+        playS.range.value = String(Math.round(len));
+        sel.style.left = (s0 / dur * 100) + "%";
+        sel.style.width = (Math.min(len, dur - s0) / dur * 100) + "%";
+      }
+    }
+
+    var timer = null;
+    function persist() {
+      clearTimeout(timer);
+      msg("Saving…");
+      timer = setTimeout(function () {
+        var row = {
+          start_sec: start ? start : null,
+          // a clip that runs to the end is just "start here"
+          play_sec: play !== null && Math.round((start || 0) + play) < Math.floor(dur) ? play : null
+        };
+        sb.from("radio_tracks").update(row).eq("id", t.id).then(function (res) {
+          if (res.error) {
+            msg(/start_sec|play_sec|column/i.test(res.error.message)
+              ? "Clips need migration 0090 applied in Supabase first."
+              : "Couldn't save: " + res.error.message, true);
+            return;
+          }
+          t.start_sec = row.start_sec; t.play_sec = row.play_sec;
+          msg("Saved");
+        });
+      }, 400);
+    }
+
+    startS.range.addEventListener("input", function () {
+      start = Number(startS.range.value) || null;
+      if (play !== null) play = Math.max(MIN_PLAY, Math.min(play, dur - (start || 0)));
+      draw();
+    });
+    playS.range.addEventListener("input", function () {
+      var v = Number(playS.range.value);
+      play = v >= Math.floor(dur - (start || 0)) ? null : v;
+      draw();
+    });
+    startS.range.addEventListener("change", persist);
+    playS.range.addEventListener("change", persist);
+
+    audio.addEventListener("loadedmetadata", function () {
+      dur = isFinite(audio.duration) ? audio.duration : 0;
+      if (!dur) return;
+      if (start !== null) start = Math.min(start, Math.max(0, dur - MIN_PLAY));
+      if (play !== null) play = Math.min(play, dur - (start || 0));
+      [startS.range, playS.range, setStart, setEnd, preview, whole].forEach(function (el) { el.disabled = false; });
+      draw();
+    });
+    audio.addEventListener("timeupdate", function () {
+      if (dur) playhead.style.left = (audio.currentTime / dur * 100) + "%";
+      if (previewing && play !== null && audio.currentTime >= (start || 0) + play) { audio.pause(); stopPreview(); }
+    });
+    audio.addEventListener("pause", function () { if (previewing) stopPreview(); });
+    audio.addEventListener("ended", stopPreview);
+
+    draw();
+    return box;
   }
 
   function button(text, label, onClick) {
