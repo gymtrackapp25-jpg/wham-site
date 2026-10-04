@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="apple-itunes-app" content="app-id=6793319978">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A WHAM workout plan</title>
+<meta name="description" content="A workout plan shared from WHAM — open it in the app to add it to your plans.">
+<meta property="og:title" content="A WHAM workout plan">
+<meta property="og:description" content="Tap to add this plan to WHAM.">
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px 16px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    -webkit-font-smoothing: antialiased;
+  }
+  .card { width: 100%; max-width: 440px; }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 0.9rem;
+  }
+  h1 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(1.7rem, 7.5vw, 2.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+    overflow-wrap: anywhere;
+  }
+  h1 .dim { color: var(--text-muted); opacity: 0.6; }
+  .status {
+    color: var(--text-muted);
+    min-height: 1.6em;
+    line-height: 1.6;
+    margin: 0 0 1.8rem;
+  }
+  .status.warn { color: var(--accent); }
+  .actions { display: flex; flex-direction: column; gap: 12px; margin: 0 0 1.8rem; }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 1px solid var(--rule);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.985); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #14110D;
+    font-size: 1.15rem;
+  }
+  .hint { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0 0 0.6rem; }
+  .code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-indent: 0.22em; /* balance the trailing letter-spacing so it centres */
+    padding: 14px 8px;
+    border: 1px dashed var(--rule);
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    user-select: all;
+    -webkit-user-select: all;
+    margin: 0 0 1.8rem;
+  }
+  .lead { color: var(--text-muted); line-height: 1.6; margin: 0 0 1.8rem; font-size: 1.05rem; }
+  footer { padding-top: 1.2rem; border-top: 1px solid var(--rule); }
+  footer a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  footer a:hover { text-decoration: underline; }
+  [hidden] { display: none !important; }
+  .plan { text-align: left; margin: 0 0 1.8rem; border-top: 1px solid var(--rule); }
+  .plan li { list-style: none; display: flex; justify-content: space-between; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--rule); }
+  .plan ul { margin: 0; padding: 0; }
+  .plan .n { font-weight: 600; }
+  .plan .s { color: var(--accent); font-weight: 700; white-space: nowrap; }
+  .by { color: var(--text-muted); margin: 0 0 1.4rem; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">WHAM workout plan</p>
+
+    <div id="valid" hidden>
+      <h1 id="name">Loading&hellip;</h1>
+      <p id="by" class="by" hidden></p>
+      <p id="status" class="status" aria-live="polite"></p>
+      <div id="plan" class="plan" hidden><ul id="items"></ul></div>
+      <div class="actions">
+        <a id="open" class="btn primary" href="#">Add to my plans in WHAM</a>
+        <a id="store" class="btn" href="#">Get WHAM on the App Store</a>
+      </div>
+      <p class="hint">Got WHAM? The button opens the plan straight in the app.</p>
+    </div>
+
+    <div id="invalid" hidden>
+      <h1>WHAM</h1>
+      <p class="lead">That plan link is missing its code.</p>
+      <div class="actions">
+        <a id="store2" class="btn" href="#">Get WHAM on the App Store</a>
+      </div>
+    </div>
+
+    <footer><a href="/">getwham.app</a></footer>
+  </main>
+
+<script>
+  var APP_STORE_URL = "https://apps.apple.com/gb/app/wham-gym/id6793319978";
+  // Public by design: RLS + RPC grants are the gate, the anon key is not a secret.
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+
+  // Plan codes: 6 chars from A-Z minus I/O, and 2-9 (lib/planShare.ts)
+  function normaliseCode(raw) {
+    var s = String(raw == null ? "" : raw).toUpperCase().replace(/[^A-Z2-9]/g, "");
+    return /^[A-HJ-NP-Z2-9]{6}$/.test(s) ? s : "";
+  }
+  function exName(it) {
+    if (it.move) return String(it.move);
+    var e = String(it.eq || "");
+    return e.charAt(0).toUpperCase() + e.slice(1).replace(/[-_]/g, " ");
+  }
+  function target(it) {
+    if (it.targetMin) return it.sets + " × " + it.targetMin + " min";
+    if (it.targetM) return it.sets + " × " + it.targetM + " m";
+    if (it.reps) return it.sets + " × " + it.reps;
+    return it.sets + (it.sets === 1 ? " set" : " sets");
+  }
+
+  (function () {
+    var code = normaliseCode(new URLSearchParams(location.search).get("c"));
+    document.getElementById("store").href = APP_STORE_URL;
+    document.getElementById("store2").href = APP_STORE_URL;
+    if (!code) { document.getElementById("invalid").hidden = false; return; }
+
+    document.getElementById("open").href = "wham://plan/" + code;
+    document.getElementById("valid").hidden = false;
+    var status = document.getElementById("status");
+
+    fetch(SUPABASE_URL + "/rest/v1/rpc/get_shared_plan", {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON, Authorization: "Bearer " + SUPABASE_ANON, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ p_code: code })
+    })
+      .then(function (r) { if (!r.ok) throw new Error("lookup " + r.status); return r.json(); })
+      .then(function (rows) {
+        var row = Array.isArray(rows) && rows.length ? rows[0] : null;
+        var name = document.getElementById("name");
+        if (!row) {
+          name.textContent = "Plan not found";
+          status.textContent = "That plan link doesn’t work any more.";
+          status.className = "status warn";
+          return;
+        }
+        name.textContent = row.name;
+        document.title = row.name + " · WHAM plan";
+        if (row.handle) { var by = document.getElementById("by"); by.textContent = "from @" + row.handle; by.hidden = false; }
+        var ul = document.getElementById("items");
+        (row.items || []).slice(0, 40).forEach(function (it) {
+          var li = document.createElement("li");
+          var n = document.createElement("span"); n.className = "n"; n.textContent = exName(it);
+          var s = document.createElement("span"); s.className = "s"; s.textContent = target(it);
+          li.appendChild(n); li.appendChild(s); ul.appendChild(li);
+        });
+        document.getElementById("plan").hidden = false;
+      })
+      .catch(function () {
+        status.textContent = "Couldn’t reach WHAM just now — the button still opens the plan in the app.";
+        status.className = "status warn";
+      });
+  })();
+</script>
+</body>
+</html>
