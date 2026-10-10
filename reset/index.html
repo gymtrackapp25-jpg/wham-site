@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reset your WHAM password</title>
+<meta name="description" content="Choose a new password for your WHAM account.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/icon.png">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --field: #241E17;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-ink: #141005;
+    --rule: #332A1E;
+    --error: #E0786A;
+    --ok: #5FC4A0;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    padding: 28px 22px;
+  }
+  .brand { font-weight: 800; letter-spacing: 0.18em; color: var(--accent); font-size: 13px; }
+  h1 { font-size: 24px; margin: 8px 0 6px; }
+  p { color: var(--text-muted); font-size: 15px; line-height: 1.45; margin: 0 0 18px; }
+  label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-muted); margin: 14px 0 6px; }
+  input {
+    width: 100%;
+    font: inherit;
+    font-size: 16px;
+    color: var(--text);
+    background: var(--field);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 13px 14px;
+    outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  button {
+    width: 100%;
+    margin-top: 20px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: 0;
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.55; cursor: default; }
+  .msg { margin-top: 14px; font-size: 14px; line-height: 1.4; min-height: 1em; }
+  .msg.error { color: var(--error); }
+  .msg.ok { color: var(--ok); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand">WHAM</div>
+
+  <section id="loading">
+    <h1>One moment…</h1>
+    <p>Checking your reset link.</p>
+  </section>
+
+  <section id="form" class="hidden">
+    <h1>Choose a new password</h1>
+    <p>At least 8 characters. You'll use it to sign in to WHAM on any device.</p>
+    <form id="f" novalidate>
+      <label for="pw">NEW PASSWORD</label>
+      <input id="pw" type="password" autocomplete="new-password" minlength="8" required>
+      <label for="pw2">CONFIRM PASSWORD</label>
+      <input id="pw2" type="password" autocomplete="new-password" minlength="8" required>
+      <button id="go" type="submit">Save new password</button>
+      <div id="msg" class="msg" role="status" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section id="done" class="hidden">
+    <h1>Password updated ✓</h1>
+    <p>Open WHAM and sign in with your email and new password.</p>
+  </section>
+
+  <section id="bad" class="hidden">
+    <h1>This link has expired</h1>
+    <p>Reset links work once and only for a short time. In WHAM, tap <strong>Forgot password?</strong> on the sign-in screen to get a new one.</p>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  /* The emailed recovery link lands here with the session in the URL hash
+     (supabase-js implicit flow); the client picks it up, then updateUser sets
+     the new password. Public anon key — the same one the app ships. */
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var MIN = 8;
+
+  function show(id) {
+    ["loading", "form", "done", "bad"].forEach(function (s) {
+      document.getElementById(s).classList.toggle("hidden", s !== id);
+    });
+  }
+  function say(text, kind) {
+    var m = document.getElementById("msg");
+    m.textContent = text;
+    m.className = "msg" + (kind ? " " + kind : "");
+  }
+
+  var hash = new URLSearchParams(location.hash.slice(1));
+  var query = new URLSearchParams(location.search);
+  if (hash.get("error") || query.get("error")) {
+    show("bad");
+  } else {
+    var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false, detectSessionInUrl: true, flowType: "implicit" },
+    });
+    sb.auth.getSession().then(function (r) {
+      if (r.data && r.data.session) {
+        history.replaceState(null, "", location.pathname); // tokens out of the address bar
+        show("form");
+      } else {
+        show("bad");
+      }
+    }).catch(function () { show("bad"); });
+
+    document.getElementById("f").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var pw = document.getElementById("pw").value;
+      var pw2 = document.getElementById("pw2").value;
+      if (pw.length < MIN) return say("Use at least " + MIN + " characters.", "error");
+      if (pw !== pw2) return say("Those passwords don't match.", "error");
+      var btn = document.getElementById("go");
+      btn.disabled = true;
+      say("Saving…");
+      sb.auth.updateUser({ password: pw }).then(function (r) {
+        if (r.error) {
+          btn.disabled = false;
+          say(r.error.message || "Couldn't save — try again.", "error");
+          return;
+        }
+        sb.auth.signOut({ scope: "local" });
+        show("done");
+      }).catch(function () {
+        btn.disabled = false;
+        say("Couldn't reach WHAM — check your connection and try again.", "error");
+      });
+    });
+  }
+</script>
+</body>
+</html>
