@@ -19,6 +19,13 @@
           },
           {
             "/": "/plan/*"
+          },
+          {
+            "/": "/add",
+            "comment": "Friend invite \u2014 getwham.app/add/?u=HANDLE opens WHAM"
+          },
+          {
+            "/": "/add/*"
           }
         ]
       }

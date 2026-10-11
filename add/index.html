@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="apple-itunes-app" content="app-id=6793319978">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Train with me on WHAM</title>
+<meta name="description" content="A friend invited you to train together on WHAM, the gym tracker.">
+<meta property="og:title" content="Train with me on WHAM 💪">
+<meta property="og:description" content="Tap to add me as a friend on WHAM.">
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px 16px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    -webkit-font-smoothing: antialiased;
+  }
+  .card { width: 100%; max-width: 440px; }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 0.9rem;
+  }
+  h1 {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(1.7rem, 7.5vw, 2.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+    overflow-wrap: anywhere;
+  }
+  h1 .dim { color: var(--text-muted); opacity: 0.6; }
+  .status {
+    color: var(--text-muted);
+    min-height: 1.6em;
+    line-height: 1.6;
+    margin: 0 0 1.8rem;
+  }
+  .status.warn { color: var(--accent); }
+  .actions { display: flex; flex-direction: column; gap: 12px; margin: 0 0 1.8rem; }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 1px solid var(--rule);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.985); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #14110D;
+    font-size: 1.15rem;
+  }
+  .hint { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0 0 0.6rem; }
+  .code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-indent: 0.22em; /* balance the trailing letter-spacing so it centres */
+    padding: 14px 8px;
+    border: 1px dashed var(--rule);
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    user-select: all;
+    -webkit-user-select: all;
+    margin: 0 0 1.8rem;
+  }
+  .lead { color: var(--text-muted); line-height: 1.6; margin: 0 0 1.8rem; font-size: 1.05rem; }
+  footer { padding-top: 1.2rem; border-top: 1px solid var(--rule); }
+  footer a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  footer a:hover { text-decoration: underline; }
+  [hidden] { display: none !important; }
+  .plan { text-align: left; margin: 0 0 1.8rem; border-top: 1px solid var(--rule); }
+  .plan li { list-style: none; display: flex; justify-content: space-between; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--rule); }
+  .plan ul { margin: 0; padding: 0; }
+  .plan .n { font-weight: 600; }
+  .plan .s { color: var(--accent); font-weight: 700; white-space: nowrap; }
+  .by { color: var(--text-muted); margin: 0 0 1.4rem; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">WHAM invite</p>
+    <div id="valid" hidden>
+      <h1>Train with <span id="who"></span></h1>
+      <p class="lead">You've been invited to WHAM, the gym tracker where friends see each other's sessions, react to PBs and race on the weekly boards.</p>
+      <div class="actions">
+        <a id="open" class="btn primary" href="#">Add as a friend in WHAM</a>
+        <a id="store" class="btn" href="#">Get WHAM on the App Store</a>
+      </div>
+      <p class="hint">New to WHAM? Get the app, then tap this link again to add your friend.</p>
+    </div>
+    <div id="invalid" hidden>
+      <h1>WHAM</h1>
+      <p class="lead">That invite link is missing a username.</p>
+      <div class="actions">
+        <a id="store2" class="btn" href="#">Get WHAM on the App Store</a>
+      </div>
+    </div>
+    <footer><a href="/">getwham.app</a></footer>
+  </main>
+<script>
+  var APP_STORE_URL = "https://apps.apple.com/gb/app/wham-gym/id6793319978";
+  // usernames: lowercase letters, digits, _ and . (lib/invite.ts)
+  function normaliseHandle(raw) {
+    var s = String(raw == null ? "" : raw).trim().replace(/^@/, "").toLowerCase();
+    return /^[a-z0-9_.]{2,30}$/.test(s) ? s : "";
+  }
+  (function () {
+    var handle = normaliseHandle(new URLSearchParams(location.search).get("u"));
+    document.getElementById("store").href = APP_STORE_URL;
+    document.getElementById("store2").href = APP_STORE_URL;
+    if (!handle) { document.getElementById("invalid").hidden = false; return; }
+    document.getElementById("who").textContent = "@" + handle;
+    document.getElementById("open").href = "wham://add/" + encodeURIComponent(handle);
+    document.getElementById("valid").hidden = false;
+  })();
+</script>
+</body>
+</html>
