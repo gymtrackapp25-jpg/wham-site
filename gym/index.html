@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="apple-itunes-app" content="app-id=6793319978">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A gym on WHAM</title>
+<meta name="description" content="Step inside someone's gym on WHAM — their machines, lifts and records.">
+<meta property="og:title" content="Come see my gym on WHAM 🏋️">
+<meta property="og:description" content="My machines, my lifts, my records. Build your own gym in the WHAM app.">
+<meta property="og:image" content="https://getwham.app/icon.png">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/icon.png">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-soft: rgba(209, 165, 75, 0.14);
+    --rule: #332A1E;
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0 16px 104px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .eyebrow { color: var(--accent); font-size: 0.8rem; letter-spacing: 0.22em; text-transform: uppercase; margin: 28px 0 10px; }
+  h1 { font-family: var(--serif); font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em; font-size: clamp(1.7rem, 6vw, 2.4rem); line-height: 1.05; margin: 0; overflow-wrap: anywhere; }
+  .who { display: flex; align-items: center; gap: 14px; }
+  .avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: var(--bg-elevated); border: 1px solid var(--rule); flex: none; display: grid; place-items: center; font-family: var(--serif); font-size: 1.6rem; color: var(--accent); }
+  .handle { color: var(--text-muted); margin-top: 4px; }
+  .bio { color: var(--text-muted); margin: 12px 0 0; line-height: 1.45; }
+  .chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }
+  @media (min-width: 560px) { .chips { grid-template-columns: repeat(4, 1fr); } }
+  .chip { background: var(--bg-elevated); border: 1px solid var(--rule); border-radius: 12px; padding: 9px 12px; min-width: 0; }
+  .chip b { display: block; font-family: var(--serif); font-weight: 500; color: var(--accent); font-size: 1.25rem; }
+  .chip span { color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
+  .persona { display: flex; gap: 12px; align-items: center; margin-top: 14px; background: var(--bg-elevated); border: 1px solid var(--rule); border-radius: 14px; padding: 10px; }
+  .persona img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; border: 1px solid #6b5426; }
+  .persona .t { font-family: var(--serif); font-size: 1.1rem; }
+  .persona .s { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
+  .stage { position: relative; margin-top: 18px; border-radius: 18px; overflow: hidden; border: 1px solid var(--rule); background: #0d0b08; height: min(64vh, 560px, 110vw); min-height: 320px; }
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  canvas.drag { cursor: grabbing; }
+  .stage-tools { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; }
+  .tool { background: rgba(20, 17, 13, 0.82); color: var(--text); border: 1px solid var(--rule); border-radius: 10px; font: inherit; font-size: 0.8rem; padding: 7px 10px; cursor: pointer; }
+  .hint { position: absolute; left: 12px; bottom: 10px; color: rgba(237, 231, 218, 0.7); font-size: 0.75rem; pointer-events: none; }
+  h2 { font-family: var(--serif); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 1.2rem; margin: 30px 0 10px; display: flex; align-items: center; justify-content: space-between; }
+  .units { display: inline-flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+  .units button { background: none; border: 0; color: var(--text-muted); font: inherit; font-size: 0.8rem; padding: 6px 12px; cursor: pointer; }
+  .units button.on { background: var(--accent-soft); color: var(--accent); }
+  .lifts { border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+  .lift { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 12px 14px; border-top: 1px solid var(--rule); transition: background 0.4s; }
+  .lift:first-child { border-top: 0; }
+  .lift.hi { background: var(--accent-soft); }
+  .lift .n { font-weight: 600; overflow-wrap: anywhere; }
+  .lift .m { color: var(--text-muted); font-size: 0.82rem; }
+  .lift .v { text-align: right; font-family: var(--serif); color: var(--accent); font-size: 1.05rem; white-space: nowrap; }
+  .lift .e { text-align: right; color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+  .tier { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .more { display: block; width: 100%; background: none; border: 0; border-top: 1px solid var(--rule); color: var(--accent); font: inherit; padding: 12px; cursor: pointer; }
+  .empty, .msg { color: var(--text-muted); line-height: 1.5; }
+  .msg { text-align: center; margin: 22vh auto 0; max-width: 420px; }
+  .msg h1 { margin-bottom: 12px; }
+  .cta { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--bg) 70%, rgba(20, 17, 13, 0)); }
+  .cta .in { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; }
+  .btn { flex: 1; display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 14px; text-decoration: none; font-weight: 600; border: 1px solid var(--rule); color: var(--text); background: var(--bg-elevated); }
+  .btn.primary { background: var(--accent); color: #14110D; border-color: var(--accent); flex: 2; }
+  .foot { color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-top: 28px; }
+  .foot a { color: var(--text-muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="msg" class="msg">
+    <h1 id="msgTitle">Opening the gym…</h1>
+    <p id="msgText"></p>
+  </div>
+
+  <main id="page" hidden>
+    <p class="eyebrow">A gym on WHAM</p>
+    <div class="who">
+      <div id="avatar" class="avatar"></div>
+      <div>
+        <h1 id="name"></h1>
+        <div id="handle" class="handle"></div>
+      </div>
+    </div>
+    <p id="bio" class="bio" hidden></p>
+    <div id="persona" class="persona" hidden>
+      <img id="personaImg" alt="">
+      <div><div id="personaName" class="t"></div><div id="personaBlurb" class="s"></div></div>
+    </div>
+    <div id="chips" class="chips"></div>
+
+    <div class="stage">
+      <canvas id="gym" aria-label="Their gym"></canvas>
+      <div class="stage-tools">
+        <button class="tool" id="reset" type="button">Whole gym</button>
+      </div>
+      <div class="hint" id="hint">Drag to look around · pinch or scroll to zoom · tap a machine</div>
+    </div>
+
+    <h2>Lifts <span class="units" role="group" aria-label="Units"><button id="uKg" type="button">kg</button><button id="uLb" type="button">lb</button></span></h2>
+    <div id="lifts" class="lifts"></div>
+    <p id="noLifts" class="empty" hidden>No lifts logged yet.</p>
+
+    <p class="foot">Shared from <a href="/">WHAM</a> · the owner chose to make this gym public.</p>
+  </main>
+</div>
+
+<div class="cta">
+  <div class="in">
+    <a class="btn primary" id="get" href="https://apps.apple.com/gb/app/wham-gym/id6793319978">Build your own gym — free</a>
+    <a class="btn" id="add" href="#" hidden>Add friend</a>
+  </div>
+</div>
+
+<script src="catalog.js"></script>
+<script>
+(function () {
+  "use strict";
+  // Public by design: RLS + RPC grants are the gate, the anon key is not a secret.
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var C = window.WHAM_CATALOG;
+  var HOST = "https://getwham.app";
+  var LB = 2.20462;
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function rpc(fn, body) {
+    return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON, Authorization: "Bearer " + SUPABASE_ANON, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (!r.ok) throw new Error(fn + " " + r.status);
+      return r.json();
+    });
+  }
+  function showMsg(title, text) {
+    $("page").hidden = true;
+    $("msg").hidden = false;
+    $("msgTitle").textContent = title;
+    $("msgText").textContent = text || "";
+  }
+
+  var handle = (new URLSearchParams(location.search).get("u") || "").trim().replace(/^@/, "").toLowerCase();
+  if (!/^[a-z0-9_.]{2,30}$/.test(handle)) {
+    showMsg("No gym here", "This link is missing a WHAM username.");
+    return;
+  }
+
+  /* ---------- units ---------- */
+  var unit = "kg";
+  try { if (localStorage.getItem("whamUnit") === "lb") unit = "lb"; } catch (e) {}
+  function num(n) { return (Math.round(n * 10) / 10).toLocaleString(undefined, { maximumFractionDigits: 1 }); }
+  function wt(kg) { return unit === "lb" ? num(kg * LB) + " lb" : num(kg) + " kg"; }
+  function tonnes(kg) {
+    if (unit === "lb") { var lb = kg * LB; return lb >= 1e6 ? num(lb / 1e6) + "M lb" : lb >= 1000 ? num(lb / 1000) + "k lb" : num(lb) + " lb"; }
+    return kg >= 1000 ? num(kg / 1000) + " t" : num(kg) + " kg";
+  }
+
+  /* ---------- the app's own maths (catalog.js is generated from the app) ---------- */
+  function iso(x, y) { return { x: (x - y) * 24, y: (x + y) * 12 }; }
+  function tierOf(amount, unitKey) {
+    var th = unitKey === "min" ? C.mastery.cardioMinuteThresholds : C.mastery.repThresholds;
+    var cur = C.mastery.tiers[0];
+    C.mastery.tiers.forEach(function (t) { if (amount >= th[t.id]) cur = t; });
+    return cur;
+  }
+  function repLevel(total) {
+    var cur = C.rep[0];
+    C.rep.forEach(function (l) { if (total >= l.rep) cur = l; });
+    return cur;
+  }
+  function skyFloor(kg) {
+    var th = C.sky.thresholds, idx = 0;
+    for (var i = 0; i < th.length; i++) if (kg >= th[i]) idx = i;
+    var hi = th[idx + 1];
+    var frac = hi == null ? 1 : Math.min(1, Math.max(0, (kg - th[idx]) / (hi - th[idx])));
+    return C.sky.offset + idx * C.sky.floorsPerStage + Math.round(frac * C.sky.floorsPerStage);
+  }
+
+  /* ---------- data → machines on the floor ---------- */
+  var data, eqs = [], lifts = [], bestByEq = {}, selected = null;
+
+  function buildMachines(layout) {
+    var S = C.grid.FLOOR_SCALE;
+    var customs = {};
+    (layout.custom || []).forEach(function (c) { customs[c.id] = c; });
+    var rots = {};
+    (layout.spots || []).forEach(function (s) { rots[s.id] = s.rot === true ? 1 : (s.rot | 0); });
+    // where they stand: `at` (resolved by the app, 2026-10-30+); older snapshots: their spots
+    var places = layout.at && layout.at.length ? layout.at : (layout.spots || []).filter(function (s) { return !s.stored; });
+    var out = [];
+    places.forEach(function (p) {
+      var base = C.machines[p.id], custom = customs[p.id];
+      if (!base && !custom) return;
+      var fw = base ? base.fw : 2, fh = base ? base.fh : 2, rot = rots[p.id] || 0;
+      if (rot % 2) { var t = fw; fw = fh; fh = t; }
+      out.push({
+        id: p.id, gx: p.gx * S, gy: p.gy * S, fw: fw, fh: fh, rot: rot,
+        name: base ? base.name : custom.name, kind: base ? base.kind : custom.kind,
+        key: base ? p.id : (custom.imageKey || "mat")
+      });
+    });
+    out.sort(function (a, b) { return (a.gx + a.fw + a.gy + a.fh) - (b.gx + b.fw + b.gy + b.fh); });
+    return out;
+  }
+
+  function computeTiers() {
+    var reps = {}, mins = {};
+    lifts.forEach(function (l) {
+      reps[l.exercise_key] = (reps[l.exercise_key] || 0) + Number(l.total_reps || 0);
+      mins[l.exercise_key] = (mins[l.exercise_key] || 0) + Number(l.total_min || 0);
+    });
+    eqs.forEach(function (e) {
+      var r = reps[e.id] || 0, m = mins[e.id] || 0;
+      var u = e.kind === "cardio" || (r === 0 && m > 0) ? "min" : "reps";
+      var amount = u === "min" ? m : r;
+      e.tier = amount > 0 ? tierOf(amount, u) : null;
+    });
+  }
+
+  /* the machine's headline number for its tag: the best set by e1RM across its moves */
+  function bestPerMachine() {
+    var best = {};
+    lifts.forEach(function (l) {
+      var cur = best[l.exercise_key];
+      var score = Number(l.best_e1rm || 0) || Number(l.best_w || 0);
+      if (!cur || score > cur.score) best[l.exercise_key] = { row: l, score: score };
+    });
+    var out = {};
+    Object.keys(best).forEach(function (k) {
+      var l = best[k].row;
+      var text = null;
+      if (l.best_w != null && l.best_r) text = wt(Number(l.best_w));
+      else if (l.best_bodyweight_r) text = l.best_bodyweight_r + " reps";
+      else if (l.best_distance_m) text = num(l.best_distance_m / 1000) + " km";
+      else if (Number(l.total_min) > 0) text = Math.round(l.total_min) + " min";
+      if (text) out[k] = { text: text, score: best[k].score, row: l };
+    });
+    return out;
+  }
+
+  /* ---------- images ---------- */
+  var imgs = {};
+  function img(url) {
+    if (!url) return null;
+    var i = imgs[url];
+    if (!i) {
+      i = imgs[url] = new Image();
+      i.decoding = "async";
+      i.onload = draw;
+      i.onerror = function () { i.failed = true; draw(); };
+      i.src = url;
+    }
+    return i.complete && i.naturalWidth && !i.failed ? i : null;
+  }
+  function spriteUrl(e) {
+    var hosted = C.hosted.keys.indexOf(e.key) >= 0;
+    if (e.id === "sled") return null; // drawn on its own track below
+    if (e.tier && hosted) {
+      return e.rot ? HOST + "/sprites/" + e.key + "-" + e.tier.id + "-r" + e.rot + ".png?v=" + C.hosted.turnV
+                   : HOST + "/sprites/" + e.key + "-" + e.tier.id + ".png?v=" + (C.hosted.tierRev[e.key] || C.hosted.tierV);
+    }
+    if (e.rot && hosted) return HOST + "/sprites/" + e.key + "-standard-r" + e.rot + ".png?v=" + C.hosted.turnV;
+    return "/sprites/" + (C.standard.indexOf(e.key) >= 0 ? e.key : "mat") + "-standard.webp";
+  }
+  /* where a sprite lands, in world px — EquipmentLayer.tsx's placement */
+  function spriteBox(e, im) {
+    var tune = C.tune[e.key] || {};
+    var b = iso(e.gx + e.fw / 2, e.gy + e.fh / 2);
+    var w = (C.sprite.base + e.fw + e.fh) * C.sprite.mult * (tune.k || 1);
+    var yb = b.y + (e.fw + e.fh) * C.sprite.anchor + (tune.dy || 0);
+    var iw = im ? im.naturalWidth : 1, ih = im ? im.naturalHeight : 1;
+    var sc = Math.min(w / iw, w / ih);
+    var dw = iw * sc, dh = ih * sc;
+    return { x: b.x - dw / 2 + (tune.dx || 0), y: yb - dh, w: dw, h: dh };
+  }
+
+  /* ---------- camera ---------- */
+  var cv = $("gym"), ctx = cv.getContext("2d");
+  var W = 0, H = 0, dpr = 1, cam = { s: 0.2, tx: 0, ty: 0 }, room = null, touched = false;
+
+  function roomFor(layout) {
+    if ((layout.environment || "rooftop") !== "rooftop") return null;
+    var d = C.rooms[layout.floorDesign] || C.rooms.boutique;
+    return layout.layoutMode === "zones" ? d.zones : d.clean;
+  }
+  function worldBounds() {
+    var c = [iso(0, 0), iso(C.grid.GX, 0), iso(0, C.grid.GY), iso(C.grid.GX, C.grid.GY)];
+    var xs = c.map(function (p) { return p.x; }), ys = c.map(function (p) { return p.y; });
+    return { x0: Math.min.apply(null, xs) - 40, x1: Math.max.apply(null, xs) + 40, y0: Math.min.apply(null, ys) - 560, y1: Math.max.apply(null, ys) + 40 };
+  }
+  function frame(b, pad) {
+    var s = Math.min((W - pad * 2) / (b.x1 - b.x0), (H - pad * 2) / (b.y1 - b.y0));
+    return { s: s, tx: W / 2 - ((b.x0 + b.x1) / 2) * s, ty: H / 2 - ((b.y0 + b.y1) / 2) * s };
+  }
+  /* "Whole gym": the floor and its walls */
+  function fit() {
+    var whole = frame(worldBounds(), 8);
+    cam = { s: whole.s, tx: whole.tx, ty: whole.ty, min: whole.s * 0.9 };
+  }
+  /* the opening view: just the machines (with their art's height above
+     them), never closer than about a third of the floor */
+  function fitMachines() {
+    fit();
+    if (!eqs.length) return;
+    var b = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
+    eqs.forEach(function (e) {
+      [iso(e.gx, e.gy), iso(e.gx + e.fw, e.gy), iso(e.gx, e.gy + e.fh), iso(e.gx + e.fw, e.gy + e.fh)].forEach(function (p) {
+        b.x0 = Math.min(b.x0, p.x); b.x1 = Math.max(b.x1, p.x); b.y0 = Math.min(b.y0, p.y - 150); b.y1 = Math.max(b.y1, p.y + 10);
+      });
+    });
+    // frame them, but never closer than 4× the whole-gym view
+    var whole = cam.s, f = frame(b, 14);
+    // a portrait phone crops the wide floor's sides rather than shrink it
+    var ns = Math.min(Math.max(f.s, whole * (H > W ? 1.7 : 1)), whole * 4);
+    var cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+    cam = { s: ns, tx: W / 2 - cx * ns, ty: H / 2 - cy * ns, min: cam.min };
+  }
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    var r = cv.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    // keep the opening framing right through layout/rotation until they move it
+    if (!touched) fitMachines();
+    draw();
+  }
+  function zoomAt(px, py, k) {
+    var ns = Math.max(cam.min || 0.05, Math.min(3, cam.s * k));
+    k = ns / cam.s;
+    cam.tx = px - (px - cam.tx) * k;
+    cam.ty = py - (py - cam.ty) * k;
+    cam.s = ns;
+    draw();
+  }
+
+  /* ---------- drawing ---------- */
+  var tagRects = [], spriteRects = [];
+  var raf = 0;
+  function draw() { if (!raf) raf = requestAnimationFrame(paint); }
+
+  function polygon(pts, fill) {
+    ctx.beginPath();
+    pts.forEach(function (p, i) { if (i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); });
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+  }
+  function plainRoom() {
+    var G = C.grid, wh = 520;
+    var a = iso(0, 0), bx = iso(G.GX, 0), by = iso(0, G.GY), c = iso(G.GX, G.GY);
+    polygon([{ x: a.x, y: a.y - wh }, { x: bx.x, y: bx.y - wh }, bx, a], "#231d15");
+    polygon([{ x: a.x, y: a.y - wh }, { x: by.x, y: by.y - wh }, by, a], "#1b1610");
+    polygon([a, bx, c, by], "#2b241b");
+    ctx.strokeStyle = "rgba(209,165,75,0.08)";
+    ctx.lineWidth = 1 / cam.s;
+    for (var i = 0; i <= G.GX; i += 6) { var p = iso(i, 0), q = iso(i, G.GY); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); }
+    for (var j = 0; j <= G.GY; j += 6) { var p2 = iso(0, j), q2 = iso(G.GX, j); ctx.beginPath(); ctx.moveTo(p2.x, p2.y); ctx.lineTo(q2.x, q2.y); ctx.stroke(); }
+  }
+  function sled(e) {
+    var vert = e.fh > e.fw;
+    function G(al, ac) { return vert ? [e.gx + ac * e.fw, e.gy + al * e.fh] : [e.gx + al * e.fw, e.gy + ac * e.fh]; }
+    function P(al, ac) { var g = G(al, ac); return iso(g[0], g[1]); }
+    ctx.strokeStyle = "rgba(235,240,238,0.85)";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    [P(0, 0), P(0, 1), P(1, 1), P(1, 0)].forEach(function (p, i) { if (i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); });
+    ctx.closePath();
+    ctx.stroke();
+    var im = img("/sprites/" + (vert ? "sled-r1" : "sled-r0") + ".webp");
+    if (!im) return null;
+    var g = G(0.13, 0.5), c = iso(g[0], g[1]), k = 0.55;
+    var box = { x: c.x - 85.95 * k, y: c.y - 115.32 * k, w: 171.91 * k, h: 171.91 * k };
+    ctx.drawImage(im, box.x, box.y, box.w, box.h);
+    return box;
+  }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function paint() {
+    raf = 0;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = "#0d0b08";
+    ctx.fillRect(0, 0, W, H);
+    ctx.setTransform(dpr * cam.s, 0, 0, dpr * cam.s, dpr * cam.tx, dpr * cam.ty);
+    if (room) {
+      var poster = img("/room/" + room.poster.f);
+      if (poster) ctx.drawImage(poster, room.poster.x, room.poster.y, room.poster.w, room.poster.h);
+      else plainRoom();
+      // the full-res tiles once zoomed in past the poster's own resolution
+      if (cam.s * dpr > 0.3) room.tiles.forEach(function (t) { var ti = img("/room/" + t.f); if (ti) ctx.drawImage(ti, t.x, t.y, t.w, t.h); });
+    } else plainRoom();
+
+    spriteRects = [];
+    eqs.forEach(function (e) {
+      var box;
+      if (e.id === "sled") box = sled(e);
+      else {
+        var im = img(spriteUrl(e));
+        if (!im) return;
+        box = spriteBox(e, im);
+        if (selected && selected !== e.id) ctx.globalAlpha = 0.55;
+        ctx.drawImage(im, box.x, box.y, box.w, box.h);
+        ctx.globalAlpha = 1;
+      }
+      if (box) spriteRects.push({ id: e.id, x: box.x * cam.s + cam.tx, y: box.y * cam.s + cam.ty, w: box.w * cam.s, h: box.h * cam.s });
+    });
+
+    // tags, in screen space: the strongest lifts claim their spot first,
+    // anything that would overlap shrinks to a dot
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    tagRects = [];
+    var placed = [];
+    var cands = [];
+    spriteRects.forEach(function (r) {
+      var b = bestByEq[r.id];
+      if (b) cands.push({ id: r.id, ax: r.x + r.w / 2, ay: r.y + r.h * 0.12, b: b });
+    });
+    cands.sort(function (a, b) { return (a.id === selected ? -1 : b.id === selected ? 1 : b.b.score - a.b.score); });
+    ctx.font = "600 12px -apple-system, system-ui, sans-serif";
+    ctx.textBaseline = "middle";
+    cands.forEach(function (c) {
+      var sel = c.id === selected;
+      var txt = sel && c.b.row.best_w != null && c.b.row.best_r ? c.b.text + " × " + c.b.row.best_r : c.b.text;
+      var tw = ctx.measureText(txt).width;
+      var w = tw + 16, h = 22, x = c.ax - w / 2, y = c.ay - h - 4;
+      var hit = placed.some(function (p) { return x < p.x + p.w + 3 && x + w + 3 > p.x && y < p.y + p.h + 3 && y + h + 3 > p.y; });
+      var off = x + w < 0 || x > W || y + h < 0 || y > H;
+      if (off) return;
+      if (hit && !sel) {
+        ctx.beginPath();
+        ctx.arc(c.ax, c.ay - 6, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(209,165,75,0.9)";
+        ctx.fill();
+        tagRects.push({ id: c.id, x: c.ax - 9, y: c.ay - 15, w: 18, h: 18 });
+        return;
+      }
+      placed.push({ x: x, y: y, w: w, h: h });
+      roundRect(x, y, w, h, 11);
+      ctx.fillStyle = sel ? "#D1A54B" : "rgba(20,17,13,0.86)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(209,165,75,0.9)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = sel ? "#14110D" : "#EDE7DA";
+      ctx.fillText(txt, x + 8, y + h / 2 + 0.5);
+      tagRects.push({ id: c.id, x: x, y: y, w: w, h: h });
+    });
+  }
+
+  /* ---------- input: drag, pinch, wheel, tap ---------- */
+  var pts = {}, last = null, moved = 0, pinch0 = null, lastTap = 0;
+  cv.addEventListener("pointerdown", function (ev) {
+    cv.setPointerCapture(ev.pointerId);
+    touched = true;
+    pts[ev.pointerId] = { x: ev.offsetX, y: ev.offsetY };
+    moved = 0;
+    last = { x: ev.offsetX, y: ev.offsetY };
+    var ids = Object.keys(pts);
+    if (ids.length === 2) {
+      var a = pts[ids[0]], b = pts[ids[1]];
+      pinch0 = { d: Math.hypot(a.x - b.x, a.y - b.y), s: cam.s };
+    }
+    cv.classList.add("drag");
+  });
+  cv.addEventListener("pointermove", function (ev) {
+    if (!pts[ev.pointerId]) return;
+    pts[ev.pointerId] = { x: ev.offsetX, y: ev.offsetY };
+    var ids = Object.keys(pts);
+    if (ids.length === 2 && pinch0) {
+      var a = pts[ids[0]], b = pts[ids[1]];
+      var d = Math.hypot(a.x - b.x, a.y - b.y);
+      zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, (pinch0.s * d / pinch0.d) / cam.s);
+      moved += 10;
+      return;
+    }
+    var dx = ev.offsetX - last.x, dy = ev.offsetY - last.y;
+    moved += Math.abs(dx) + Math.abs(dy);
+    last = { x: ev.offsetX, y: ev.offsetY };
+    cam.tx += dx; cam.ty += dy;
+    draw();
+  });
+  function up(ev) {
+    var wasTap = moved < 8 && Object.keys(pts).length === 1;
+    delete pts[ev.pointerId];
+    if (Object.keys(pts).length < 2) pinch0 = null;
+    if (!Object.keys(pts).length) cv.classList.remove("drag");
+    if (!wasTap) return;
+    var now = Date.now();
+    if (now - lastTap < 300) { fitMachines(); draw(); lastTap = 0; return; }
+    lastTap = now;
+    tap(ev.offsetX, ev.offsetY);
+  }
+  cv.addEventListener("pointerup", up);
+  cv.addEventListener("pointercancel", up);
+  cv.addEventListener("wheel", function (ev) {
+    ev.preventDefault();
+    touched = true;
+    zoomAt(ev.offsetX, ev.offsetY, Math.exp(-ev.deltaY * 0.0015));
+  }, { passive: false });
+  $("reset").addEventListener("click", function () { selected = null; fit(); draw(); });
+
+  function inside(r, x, y) { return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
+  function tap(x, y) {
+    var hit = null, i;
+    for (i = tagRects.length - 1; i >= 0 && !hit; i--) if (inside(tagRects[i], x, y)) hit = tagRects[i].id;
+    for (i = spriteRects.length - 1; i >= 0 && !hit; i--) if (inside(spriteRects[i], x, y)) hit = spriteRects[i].id;
+    selected = hit && hit !== selected ? hit : null;
+    draw();
+    if (selected) highlightRow(selected);
+  }
+
+  /* ---------- records ---------- */
+  var showAll = false;
+  function liftLabel(l) {
+    var m = C.machines[l.exercise_key];
+    var custom = ((data.layout || {}).custom || []).filter(function (c) { return c.id === l.exercise_key; })[0];
+    var machine = m ? m.name : custom ? custom.name : null;
+    return { name: l.move || machine || "Exercise", machine: l.move && machine && l.move !== machine ? machine : null };
+  }
+  function liftValue(l) {
+    if (l.best_w != null && l.best_r) {
+      var pair = Number(l.best_hands) === 2 ? " (pair)" : "";
+      return { v: wt(Number(l.best_w)) + " × " + l.best_r + pair, e: Number(l.best_e1rm) > 0 && l.best_r > 1 ? "est. 1RM " + wt(Number(l.best_e1rm)) : null };
+    }
+    if (l.best_bodyweight_r) return { v: l.best_bodyweight_r + " reps", e: null };
+    if (l.best_distance_m) return { v: num(l.best_distance_m / 1000) + " km", e: null };
+    if (Number(l.total_min) > 0) return { v: Math.round(l.total_min) + " min total", e: null };
+    return null;
+  }
+  function renderLifts() {
+    var box = $("lifts");
+    box.textContent = "";
+    var rows = lifts.filter(function (l) { return liftValue(l); });
+    $("noLifts").hidden = rows.length > 0;
+    box.hidden = rows.length === 0;
+    var shown = showAll ? rows : rows.slice(0, 12);
+    shown.forEach(function (l) {
+      var lab = liftLabel(l), val = liftValue(l);
+      var row = el("div", "lift");
+      row.dataset.eq = l.exercise_key;
+      var left = el("div");
+      var n = el("div", "n");
+      var eq = eqs.filter(function (e) { return e.id === l.exercise_key; })[0];
+      if (eq && eq.tier) { var dot = el("span", "tier"); dot.style.background = eq.tier.color; dot.title = eq.tier.name + " machine"; n.appendChild(dot); }
+      n.appendChild(document.createTextNode(lab.name));
+      left.appendChild(n);
+      var when = l.best_at || l.last_at;
+      left.appendChild(el("div", "m", [lab.machine, l.sets + " sets", when ? new Date(when).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : null].filter(Boolean).join(" · ")));
+      var right = el("div");
+      right.appendChild(el("div", "v", val.v));
+      if (val.e) right.appendChild(el("div", "e", val.e));
+      row.appendChild(left);
+      row.appendChild(right);
+      row.addEventListener("click", function () { selected = l.exercise_key; draw(); focusMachine(l.exercise_key); });
+      box.appendChild(row);
+    });
+    if (!showAll && rows.length > 12) {
+      var more = el("button", "more", "Show all " + rows.length + " lifts");
+      more.type = "button";
+      more.addEventListener("click", function () { showAll = true; renderLifts(); });
+      box.appendChild(more);
+    }
+  }
+  function highlightRow(id) {
+    var row = document.querySelector('.lift[data-eq="' + CSS.escape(id) + '"]');
+    if (!row && !showAll) { showAll = true; renderLifts(); row = document.querySelector('.lift[data-eq="' + CSS.escape(id) + '"]'); }
+    if (!row) return;
+    row.classList.add("hi");
+    setTimeout(function () { row.classList.remove("hi"); }, 1600);
+  }
+  function focusMachine(id) {
+    var e = eqs.filter(function (x) { return x.id === id; })[0];
+    if (!e) return;
+    var c = iso(e.gx + e.fw / 2, e.gy + e.fh / 2);
+    var s = Math.max(cam.s, 0.9);
+    cam = { s: s, tx: W / 2 - c.x * s, ty: H * 0.58 - c.y * s, min: cam.min };
+    $("gym").scrollIntoView({ behavior: "smooth", block: "center" });
+    draw();
+  }
+
+  function chip(value, label) {
+    var c = el("div", "chip");
+    c.appendChild(el("b", null, value));
+    c.appendChild(el("span", null, label));
+    $("chips").appendChild(c);
+  }
+  function renderHeader() {
+    var p = data.profile, t = data.totals || {};
+    document.title = (p.display_name || "@" + p.handle) + "'s gym · WHAM";
+    $("name").textContent = p.display_name || p.handle;
+    $("handle").textContent = "@" + p.handle + (p.pro ? " · WHAM Pro" : "");
+    var av = $("avatar");
+    if (p.avatar_url && /^https:\/\//.test(p.avatar_url)) {
+      var im = el("img", "avatar");
+      im.alt = "";
+      im.src = p.avatar_url;
+      av.replaceWith(im);
+    } else av.textContent = (p.display_name || p.handle || "?").charAt(0).toUpperCase();
+    if (p.bio) { $("bio").hidden = false; $("bio").textContent = p.bio; }
+    var per = p.personality_id && p.personality_id !== "blankSlate" ? C.personalities[p.personality_id] : null;
+    if (per) {
+      $("persona").hidden = false;
+      $("personaImg").src = "p/" + p.personality_id + ".webp";
+      $("personaName").textContent = per.emoji + " " + per.name;
+      $("personaBlurb").textContent = per.blurb;
+    }
+    $("chips").textContent = "";
+    var kg = Number(t.lifetime_kg || 0);
+    chip(String(skyFloor(kg)), "Floor");
+    chip(repLevel(Number(t.rep || 0)).name, "Rep level");
+    chip(tonnes(kg), "Lifted");
+    chip(String(t.workouts || 0), "Workouts");
+  }
+
+  function setUnit(u) {
+    unit = u;
+    try { localStorage.setItem("whamUnit", u); } catch (e) {}
+    $("uKg").className = u === "kg" ? "on" : "";
+    $("uLb").className = u === "lb" ? "on" : "";
+    if (!data) return;
+    bestByEq = bestPerMachine();
+    renderHeader();
+    renderLifts();
+    draw();
+  }
+  $("uKg").addEventListener("click", function () { setUnit("kg"); });
+  $("uLb").addEventListener("click", function () { setUnit("lb"); });
+
+  function render(d) {
+    data = d;
+    lifts = d.lifts || [];
+    var layout = d.layout || { spots: [] };
+    eqs = buildMachines(layout);
+    room = roomFor(layout);
+    computeTiers();
+    bestByEq = bestPerMachine();
+    $("msg").hidden = true;
+    $("page").hidden = false;
+    var add = $("add");
+    add.hidden = false;
+    add.href = "/add/?u=" + encodeURIComponent(d.profile.handle);
+    setUnit(unit);
+    if (!d.layout) $("hint").textContent = "Their gym hasn't synced yet — showing an empty floor";
+    window.addEventListener("resize", resize);
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(cv);
+    resize();
+  }
+
+  rpc("get_public_gym", { p_handle: handle })
+    .then(function (d) {
+      if (!d || !d.profile) showMsg("This gym isn't public", "Either there's no WHAM user called @" + handle + ", or they haven't made their gym page public.");
+      else render(d);
+    })
+    .catch(function () { showMsg("Can't reach WHAM right now", "Check your connection and try again."); });
+})();
+</script>
+</body>
+</html>
