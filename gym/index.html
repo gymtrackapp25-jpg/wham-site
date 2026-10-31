@@ -414,8 +414,8 @@
     ctx.setTransform(dpr * cam.s, 0, 0, dpr * cam.s, dpr * cam.tx, dpr * cam.ty);
     if (room) {
       var poster = img("/room/" + room.poster.f);
+      // still loading → stay dark rather than flash the plain fallback room
       if (poster) ctx.drawImage(poster, room.poster.x, room.poster.y, room.poster.w, room.poster.h);
-      else plainRoom();
       // the full-res tiles once zoomed in past the poster's own resolution
       if (cam.s * dpr > 0.3) room.tiles.forEach(function (t) { var ti = img("/room/" + t.f); if (ti) ctx.drawImage(ti, t.x, t.y, t.w, t.h); });
     } else plainRoom();
