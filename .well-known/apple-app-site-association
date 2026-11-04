@@ -33,6 +33,13 @@
           },
           {
             "/": "/meet/*"
+          },
+          {
+            "/": "/c",
+            "comment": "Founding Athlete link: getwham.app/c/?a=SLUG opens WHAM"
+          },
+          {
+            "/": "/c/*"
           }
         ]
       }

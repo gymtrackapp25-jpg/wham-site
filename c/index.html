@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Join on WHAM</title>
+<meta name="description" content="Join a Founding Athlete's community on WHAM.">
+<meta name="theme-color" content="#0A0C10">
+<meta name="apple-itunes-app" content="app-id=6793319978">
+<meta property="og:title" content="Join on WHAM">
+<meta property="og:image" content="https://getwham.app/icon.png">
+<link rel="icon" href="/icon.png">
+<style>
+  @font-face { font-family:"Slab"; src:url("/athletes/fonts/RobotoSlab-ExtraBold.ttf") format("truetype"); font-weight:800; font-display:swap; }
+  @font-face { font-family:"Inter"; src:url("/athletes/fonts/Inter-Regular.ttf") format("truetype"); font-weight:400; font-display:swap; }
+  @font-face { font-family:"Inter"; src:url("/athletes/fonts/Inter-SemiBold.ttf") format("truetype"); font-weight:600; font-display:swap; }
+  :root { --bg:#0A0C10; --raised:#14171D; --line:#2A2F39; --text:#F4F1E8; --muted:#A9ADB6; --gold:#FFC23C; --ink:#141005; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--text); font:400 17px/1.55 "Inter",-apple-system,system-ui,sans-serif; padding:32px 16px; text-align:center; }
+  main { width:100%; max-width:440px; }
+  .cover { width:100%; aspect-ratio:2.2; object-fit:cover; border-radius:16px; margin-bottom:20px; background:var(--raised); }
+  .avatar { width:84px; height:84px; border-radius:50%; object-fit:cover; background:var(--raised); margin:0 auto 12px; display:block; }
+  .eyebrow { font:600 13px/1.3 "Inter",sans-serif; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin:0 0 10px; }
+  h1 { font:800 clamp(28px,8vw,38px)/1.08 "Slab",ui-serif,Georgia,serif; text-transform:uppercase; margin:0 0 8px; overflow-wrap:anywhere; }
+  .by, .lead { color:var(--muted); margin:0 0 6px; }
+  .desc { margin:14px 0 0; overflow-wrap:anywhere; }
+  .actions { display:grid; gap:10px; margin:26px 0 0; }
+  .btn { display:block; padding:16px; border-radius:14px; font:600 17px/1.2 "Inter",sans-serif; text-decoration:none; border:2px solid var(--line); color:var(--text); }
+  .btn.primary { background:var(--gold); border-color:var(--gold); color:var(--ink); }
+  :focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+  .hint { color:var(--muted); font-size:15px; margin:22px 0 6px; }
+  .code { font:600 26px/1.2 "Inter",sans-serif; letter-spacing:.14em; -webkit-user-select:all; user-select:all; }
+  footer { margin-top:30px; font-size:14px; } footer a { color:var(--muted); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <p id="loading" class="lead" role="status">Loading…</p>
+
+  <div id="found" hidden>
+    <img id="cover" class="cover" alt="" hidden>
+    <img id="avatar" class="avatar" alt="" hidden>
+    <p class="eyebrow">Founding Athlete</p>
+    <h1 id="name"></h1>
+    <p id="by" class="by"></p>
+    <p id="count" class="by"></p>
+    <p id="desc" class="desc" hidden></p>
+    <div class="actions">
+      <a id="open" class="btn primary" href="#">Open in WHAM</a>
+      <a id="store" class="btn" href="#">Get WHAM on the App Store</a>
+    </div>
+    <p class="hint">Just installed? Join with this code in WHAM, under Social then Board:</p>
+    <div id="code" class="code"></div>
+  </div>
+
+  <div id="missing" hidden>
+    <p class="eyebrow">WHAM</p>
+    <h1>This link isn't active.</h1>
+    <p class="lead">Check it with the person who shared it. WHAM is still worth a look.</p>
+    <div class="actions"><a class="btn" href="https://apps.apple.com/gb/app/wham-gym/id6793319978">Get WHAM on the App Store</a></div>
+  </div>
+
+  <div id="offline" hidden>
+    <p class="eyebrow">WHAM</p>
+    <h1>Couldn't load that.</h1>
+    <p class="lead">Check your connection and reload the page.</p>
+  </div>
+
+  <footer><a href="/">getwham.app</a> · <a href="/privacy/">Privacy</a></footer>
+</main>
+<script>
+(function () {
+  var URL_BASE = "https://tzqejczkucsrtgmqgisr.supabase.co/rest/v1/rpc/";
+  var ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var STORE = "https://apps.apple.com/gb/app/wham-gym/id6793319978";
+  var $ = function (id) { return document.getElementById(id); };
+  var slug = (new URLSearchParams(location.search).get("a") || "").trim().toLowerCase();
+  function show(id) { ["loading", "found", "missing", "offline"].forEach(function (s) { $(s).hidden = s !== id; }); }
+  if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(slug)) { show("missing"); return; }
+  /* only images on our own storage */
+  function ours(u) { return typeof u === "string" && u.indexOf("https://tzqejczkucsrtgmqgisr.supabase.co/storage/") === 0 ? u : null; }
+
+  fetch(URL_BASE + "athlete_public", {
+    method: "POST",
+    headers: { apikey: ANON, Authorization: "Bearer " + ANON, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_slug: slug })
+  }).then(function (r) {
+    if (!r.ok) throw new Error(String(r.status));
+    return r.json();
+  }).then(function (rows) {
+    var a = Array.isArray(rows) && rows[0];
+    if (!a) { show("missing"); return; }
+    document.title = a.community_name + " on WHAM";
+    $("name").textContent = a.community_name;
+    $("by").textContent = "Run by " + a.display_name + (a.niche ? " · " + a.niche : "");
+    var n = Number(a.member_count) || 0;
+    $("count").textContent = n === 1 ? "1 member" : n.toLocaleString("en-GB") + " members";
+    if (a.description) { $("desc").textContent = a.description; $("desc").hidden = false; }
+    var cover = ours(a.image_url), face = ours(a.avatar_url);
+    if (cover) { $("cover").src = cover; $("cover").hidden = false; }
+    else if (face) { $("avatar").src = face; $("avatar").hidden = false; }
+    $("open").href = "wham://join/" + encodeURIComponent(a.join_code);
+    /* ct = campaign token: installs per creator show in App Store Connect analytics */
+    $("store").href = STORE + "?ct=" + encodeURIComponent(slug.slice(0, 40));
+    $("code").textContent = a.join_code;
+    show("found");
+  }).catch(function () { show("offline"); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WHAM Athletes admin</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14110D">
+<style>
+  :root { --bg:#14110D; --raised:#1C1712; --text:#EDE7DA; --muted:#A79C8A; --accent:#D1A54B; --rule:#332A1E; --danger:#E0735A; --ok:#7FBF8E;
+    --sans:-apple-system,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif; --serif:ui-serif,"Iowan Old Style",Palatino,Georgia,serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 var(--sans); padding:24px 16px 64px; }
+  main { max-width:860px; margin:0 auto; }
+  h1 { font:500 30px/1.2 var(--serif); margin:0 0 4px; }
+  h2 { font:600 18px/1.3 var(--sans); margin:0 0 12px; }
+  .muted { color:var(--muted); font-size:14px; }
+  a { color:var(--accent); }
+  .card { background:var(--raised); border:1px solid var(--rule); border-radius:14px; padding:16px; margin-bottom:12px; overflow-wrap:anywhere; }
+  label { display:block; font-weight:600; font-size:14px; margin:10px 0 4px; }
+  input, textarea { width:100%; background:var(--bg); color:var(--text); border:1px solid var(--rule); border-radius:10px; padding:10px 12px; font:16px var(--sans); min-height:44px; }
+  button { background:var(--accent); color:#14110D; border:0; border-radius:10px; padding:10px 14px; font:600 15px var(--sans); cursor:pointer; min-height:44px; }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--rule); }
+  button.danger { background:transparent; color:var(--danger); border:1px solid var(--danger); }
+  button[disabled] { opacity:.5; cursor:progress; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; }
+  .tabs button[aria-selected=true] { background:var(--accent); color:#14110D; }
+  .tabs button { background:transparent; color:var(--text); border:1px solid var(--rule); }
+  .tag { display:inline-block; font-size:12px; font-weight:600; letter-spacing:.04em; padding:2px 8px; border-radius:99px; border:1px solid var(--rule); color:var(--muted); margin-left:6px; }
+  .tag.pending { color:var(--accent); border-color:var(--accent); }
+  .tag.accepted, .tag.active { color:var(--ok); border-color:var(--ok); }
+  .tag.rejected, .tag.revoked { color:var(--danger); border-color:var(--danger); }
+  .why { white-space:pre-wrap; margin:10px 0 0; }
+  .status { min-height:22px; font-size:14px; margin:10px 0; }
+  .status.err { color:var(--danger); }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  td, th { text-align:left; padding:6px 8px; border-bottom:1px solid var(--rule); }
+  pre { white-space:pre-wrap; background:var(--bg); border:1px solid var(--rule); border-radius:10px; padding:12px; font:14px/1.5 var(--sans); margin:10px 0 0; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>WHAM Athletes</h1>
+  <p class="muted" id="who"></p>
+
+  <p id="boot" class="muted">Loading…</p>
+
+  <section id="signin" hidden class="card">
+    <h2>Sign in</h2>
+    <p class="muted">WHAM staff only. Everything here is checked on the server.</p>
+    <form id="signin-form">
+      <label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label><input id="password" type="password" autocomplete="current-password">
+      <div class="row"><button id="signin-btn" type="submit">Sign in</button><button id="link-btn" class="ghost" type="button">Email me a link</button></div>
+    </form>
+    <p id="signin-status" class="status" role="status"></p>
+  </section>
+
+  <section id="notstaff" hidden class="card">
+    <h2>Not a staff account</h2>
+    <p class="muted">This account doesn't have access.</p>
+    <button class="ghost" data-signout>Sign out</button>
+  </section>
+
+  <section id="staff" hidden>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="apps" aria-selected="true">Applications</button>
+      <button role="tab" data-tab="athletes" aria-selected="false">Athletes</button>
+      <button role="tab" data-tab="reports" aria-selected="false">Reports</button>
+      <button role="tab" data-tab="stats" aria-selected="false">Page numbers</button>
+      <button role="tab" data-tab="log" aria-selected="false">Log</button>
+      <button class="ghost" data-signout>Sign out</button>
+    </div>
+    <p id="status" class="status" role="status"></p>
+    <div id="view"></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  "use strict";
+  // Public by design: the staff checks live in the database functions (0126, 0129).
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var REDIRECT = "https://getwham.app/athletes-admin/";
+  var $ = function (id) { return document.getElementById(id); };
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+  });
+  var tab = "apps";
+  var FOLLOWERS = { under_1k: "Under 1,000", "1k_10k": "1,000 to 10,000", "10k_50k": "10,000 to 50,000", "50k_250k": "50,000 to 250,000", over_250k: "Over 250,000" };
+
+  // every value goes in through textContent, so application text can't become markup
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function btn(label, cls, fn) {
+    var b = el("button", cls, label);
+    b.type = "button";
+    b.addEventListener("click", fn);
+    return b;
+  }
+  function safeLink(url, label) {
+    try {
+      var u = new URL(url);
+      if (u.protocol !== "https:" && u.protocol !== "http:") return el("span", "", label);
+      var a = el("a", "", label);
+      a.href = u.href; a.target = "_blank"; a.rel = "noopener noreferrer";
+      return a;
+    } catch (e) { return el("span", "", label); }
+  }
+  function setStatus(msg, err) { $("status").textContent = msg || ""; $("status").className = "status" + (err ? " err" : ""); }
+  function day(t) { return t ? new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""; }
+  function friendly(e) {
+    var m = (e && e.message) || "Something went wrong";
+    if (/no_such_handle/.test(m)) return "No WHAM account has that username.";
+    if (/slug_taken/.test(m)) return "That link name is already used.";
+    if (/bad_slug/.test(m)) return "Link names use lower-case letters, numbers and dashes, 2 to 40 characters.";
+    if (/not_staff|permission denied/.test(m)) return "This account doesn't have access.";
+    if (/Could not find|does not exist/.test(m)) return "A migration is missing: " + m;
+    return m;
+  }
+  async function call(name, args, done) {
+    setStatus("Working…");
+    var res = await sb.rpc(name, args || {});
+    if (res.error) { setStatus(friendly(res.error), true); throw res.error; }
+    setStatus(done || "");
+    return res.data;
+  }
+  function suggestSlug(name) {
+    return String(name || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+  }
+  function athleteUrl(slug) { return "https://getwham.app/c/?a=" + encodeURIComponent(slug); }
+
+  function acceptanceMessage(name, slug) {
+    return "Hi " + name + ",\n\nYou're in: welcome to the WHAM Founding Athletes.\n\n" +
+      "Your community is ready, and WHAM Pro is on your account for free. Your link is:\n" + athleteUrl(slug) + "\n\n" +
+      "First steps (about five minutes):\n" +
+      "1. Open WHAM, go to Social, then My Leagues, and open your community.\n" +
+      "2. Follow the checklist at the top: picture, challenge, a plan, your first announcement.\n" +
+      "3. Share your link or QR code with the people you train with.\n\n" +
+      "One thing to know: because you get WHAM Pro for free, please label posts about WHAM as an ad (for example #ad).\n\n" +
+      "Reply to this email any time.";
+  }
+
+  // --------------------------------------------------------------- applications
+  async function showApps() {
+    var view = $("view"); view.textContent = "";
+    var rows = await call("athlete_applications_list", { p_status: null });
+    if (!rows.length) { view.appendChild(el("p", "muted", "No applications yet.")); return; }
+    rows.forEach(function (a) {
+      var c = el("div", "card");
+      var h = el("h2", "", a.name);
+      h.appendChild(el("span", "tag " + a.status, a.status));
+      c.appendChild(h);
+      c.appendChild(el("div", "muted", a.email + " · applied " + day(a.created_at)));
+      var meta = el("div", "muted");
+      meta.textContent = a.niche + " · " + (FOLLOWERS[a.followers_band] || a.followers_band) + " · " + (a.uses_wham ? "uses WHAM" : "not on WHAM yet") + (a.wham_handle ? " · @" + a.wham_handle : "");
+      c.appendChild(meta);
+      var links = el("div", "row");
+      if (a.instagram) links.appendChild(safeLink("https://instagram.com/" + encodeURIComponent(a.instagram), "Instagram @" + a.instagram));
+      if (a.tiktok) links.appendChild(safeLink("https://www.tiktok.com/@" + encodeURIComponent(a.tiktok), "TikTok @" + a.tiktok));
+      if (a.main_url) links.appendChild(safeLink(a.main_url, a.main_url));
+      c.appendChild(links);
+      c.appendChild(el("p", "why", a.why));
+
+      var row = el("div", "row");
+      if (a.status !== "accepted") {
+        row.appendChild(btn("Approve…", "", function () { grantForm(c, a); }));
+        if (a.status !== "rejected") row.appendChild(btn("Reject", "danger", function () {
+          if (!confirm("Reject " + a.name + "? You'll need to email them yourself.")) return;
+          call("athlete_application_review", { p_id: a.id, p_status: "rejected" }, "Rejected").then(showApps);
+        }));
+      }
+      c.appendChild(row);
+      view.appendChild(c);
+    });
+  }
+  function grantForm(card, a) {
+    if (card.querySelector("form")) return;
+    var f = el("form");
+    function field(id, label, value, hint) {
+      var l = el("label", "", label); l.htmlFor = id; f.appendChild(l);
+      var i = el("input"); i.id = id; i.value = value || ""; f.appendChild(i);
+      if (hint) f.appendChild(el("div", "muted", hint));
+      return i;
+    }
+    var handle = field("h-" + a.id, "Their WHAM username", a.wham_handle, "They need an account first.");
+    var slug = field("s-" + a.id, "Link name", suggestSlug(a.instagram || a.name), "Fixed for good: getwham.app/c/?a=this");
+    var name = field("n-" + a.id, "Community name", a.name + "'s community", "Ignored if they already run a community. They can rename it.");
+    var row = el("div", "row");
+    var go = el("button", "", "Make them a Founding Athlete"); go.type = "submit";
+    row.appendChild(go);
+    f.appendChild(row);
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      go.disabled = true;
+      call("athlete_grant", { p_handle: handle.value, p_slug: slug.value, p_community_name: name.value, p_application_id: a.id }, "Done. Send them this message:")
+        .then(function (s) {
+          var msg = acceptanceMessage(a.name, s);
+          f.textContent = "";
+          f.appendChild(el("pre", "", msg));
+          var r = el("div", "row");
+          r.appendChild(btn("Copy message", "", function () { navigator.clipboard.writeText(msg); setStatus("Copied"); }));
+          r.appendChild(btn("Back to the list", "ghost", showApps));
+          f.appendChild(r);
+        })
+        .catch(function () { go.disabled = false; });
+    });
+    card.appendChild(f);
+    handle.focus();
+  }
+
+  // --------------------------------------------------------------- athletes
+  async function showAthletes() {
+    var view = $("view"); view.textContent = "";
+    var rows = await call("athletes_list");
+    if (!rows.length) { view.appendChild(el("p", "muted", "No Founding Athletes yet.")); return; }
+    rows.forEach(function (a) {
+      var c = el("div", "card");
+      var h = el("h2", "", a.display_name);
+      h.appendChild(el("span", "tag " + (a.revoked_at ? "revoked" : "active"), a.revoked_at ? "revoked" : "active"));
+      if (a.featured) h.appendChild(el("span", "tag", "featured"));
+      c.appendChild(h);
+      c.appendChild(el("div", "muted", "@" + a.handle + (a.niche ? " · " + a.niche : "") + " · since " + day(a.granted_at)));
+      c.appendChild(el("div", "muted", (a.community_name || "No community") + " · " + (a.member_count || 0) + " members"));
+      var row = el("div", "row");
+      row.appendChild(safeLink(athleteUrl(a.slug), athleteUrl(a.slug)));
+      c.appendChild(row);
+      if (!a.revoked_at) {
+        var acts = el("div", "row");
+        acts.appendChild(btn(a.featured ? "Stop featuring" : "Feature", "ghost", function () {
+          call("athlete_feature", { p_user_id: a.user_id, p_featured: !a.featured }, "Saved").then(showAthletes);
+        }));
+        acts.appendChild(btn("Revoke", "danger", function () {
+          if (!confirm("Revoke " + a.display_name + "? They lose the badge, Pro, discovery and announcements. Their community and members stay.")) return;
+          call("athlete_revoke", { p_user_id: a.user_id }, "Revoked").then(showAthletes);
+        }));
+        c.appendChild(acts);
+      }
+      view.appendChild(c);
+    });
+  }
+
+  // --------------------------------------------------------------- reports
+  async function showReports() {
+    var view = $("view"); view.textContent = "";
+    var rows = await call("athlete_reports_list");
+    if (!rows.length) { view.appendChild(el("p", "muted", "No open reports on community posts.")); return; }
+    rows.forEach(function (r) {
+      var c = el("div", "card");
+      c.appendChild(el("h2", "", r.reason.replace(/_/g, " ")));
+      c.appendChild(el("div", "muted", "@" + r.author_handle + (r.community ? " in " + r.community : "") + " · " + day(r.created_at) + " · " + r.event_type));
+      if (r.post_text) c.appendChild(el("p", "why", r.post_text));
+      if (r.details) c.appendChild(el("p", "muted", "Reporter says: " + r.details));
+      var row = el("div", "row");
+      row.appendChild(btn("Hide the post", "danger", function () {
+        call("athlete_report_resolve", { p_report_id: r.id, p_action: "hide" }, "Hidden").then(showReports);
+      }));
+      row.appendChild(btn("Keep it", "ghost", function () {
+        call("athlete_report_resolve", { p_report_id: r.id, p_action: "dismiss" }, "Dismissed").then(showReports);
+      }));
+      c.appendChild(row);
+      view.appendChild(c);
+    });
+  }
+
+  // --------------------------------------------------------------- numbers + log
+  function table(heads, rows) {
+    var t = el("table"), tr = el("tr");
+    heads.forEach(function (h) { tr.appendChild(el("th", "", h)); });
+    t.appendChild(tr);
+    rows.forEach(function (r) {
+      var row = el("tr");
+      r.forEach(function (v) { row.appendChild(el("td", "", v == null ? "" : String(v))); });
+      t.appendChild(row);
+    });
+    return t;
+  }
+  async function showStats() {
+    var view = $("view"); view.textContent = "";
+    var rows = await call("athlete_page_stats", { p_days: 30 });
+    var days = {};
+    rows.forEach(function (r) { (days[r.day] = days[r.day] || {})[r.kind] = r.n; });
+    var out = Object.keys(days).sort().reverse().map(function (d) {
+      return [day(d), days[d].visit || 0, days[d].form_started || 0, days[d].app_store_click || 0];
+    });
+    var c = el("div", "card");
+    c.appendChild(el("h2", "", "/athletes, last 30 days"));
+    if (!out.length) c.appendChild(el("p", "muted", "No visits yet.")); else c.appendChild(table(["Day", "Visits", "Started the form", "App Store clicks"], out));
+    view.appendChild(c);
+  }
+  async function showLog() {
+    var view = $("view"); view.textContent = "";
+    var rows = await call("athlete_log_list");
+    var c = el("div", "card");
+    if (!rows.length) c.appendChild(el("p", "muted", "Nothing yet.")); else c.appendChild(table(["When", "Who", "What", "Target", "Detail"], rows.map(function (r) { return [day(r.created_at), r.actor_handle ? "@" + r.actor_handle : "", r.action, r.target, r.detail]; })));
+    view.appendChild(c);
+  }
+
+  var VIEWS = { apps: showApps, athletes: showAthletes, reports: showReports, stats: showStats, log: showLog };
+  function open(name) {
+    tab = name;
+    document.querySelectorAll("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === name)); });
+    VIEWS[name]().catch(function () {});
+  }
+  document.querySelectorAll("[data-tab]").forEach(function (b) { b.addEventListener("click", function () { open(b.dataset.tab); }); });
+
+  // --------------------------------------------------------------- sign-in
+  function show(id) {
+    ["signin", "notstaff", "staff"].forEach(function (s) { $(s).hidden = s !== id; });
+    $("boot").hidden = true;
+  }
+  var shownFor = null;
+  async function route(session) {
+    if (!session) { shownFor = null; $("who").textContent = ""; show("signin"); return; }
+    if (shownFor === session.user.id) return;
+    var res = await sb.rpc("wham_is_staff");
+    if (res.error || !res.data) { show("notstaff"); return; }
+    shownFor = session.user.id;
+    $("who").textContent = session.user.email || "";
+    show("staff");
+    open(tab);
+  }
+  $("signin-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var st = $("signin-status");
+    $("signin-btn").disabled = true; st.textContent = "Signing in…"; st.className = "status";
+    var res = await sb.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
+    $("signin-btn").disabled = false;
+    if (res.error) { st.textContent = res.error.message; st.className = "status err"; return; }
+    st.textContent = "";
+    route(res.data.session);
+  });
+  $("link-btn").addEventListener("click", async function () {
+    var st = $("signin-status"), email = $("email").value.trim();
+    if (!email) { st.textContent = "Enter your email first."; st.className = "status err"; return; }
+    var res = await sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: REDIRECT } });
+    st.textContent = res.error ? res.error.message : "Check your email for a sign-in link, then open it on this device.";
+    st.className = "status" + (res.error ? " err" : "");
+  });
+  document.querySelectorAll("[data-signout]").forEach(function (b) {
+    b.addEventListener("click", async function () { await sb.auth.signOut(); route(null); });
+  });
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { route(session); }, 0); });
+  sb.auth.getSession().then(function (r) { route(r.data.session); });
+})();
+</script>
+</body>
+</html>

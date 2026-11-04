@@ -110,11 +110,11 @@
 </head>
 <body>
   <main class="card">
-    <p class="eyebrow">WHAM League</p>
+    <p class="eyebrow" id="eyebrow">WHAM League</p>
 
     <!-- Valid code -->
     <div id="valid" hidden>
-      <h1>The <span id="gym" class="dim">Gym</span> &times; WHAM League</h1>
+      <h1 id="joinTitle">The <span id="gym" class="dim">Gym</span> &times; WHAM League</h1>
       <p id="status" class="status" aria-live="polite">Looking up your gym&hellip;</p>
       <div class="actions">
         <a id="open" class="btn primary" href="#">Open in WHAM</a>
@@ -127,7 +127,7 @@
     <!-- Missing / malformed code -->
     <div id="invalid" hidden>
       <h1>WHAM League</h1>
-      <p class="lead">That link is missing its code &mdash; ask at the front desk.</p>
+      <p class="lead">That link is missing its code. Ask whoever shared it.</p>
       <div class="actions">
         <a id="store2" class="btn" href="#">Get WHAM on the App Store</a>
       </div>
@@ -195,14 +195,22 @@
       .then(function (rows) {
         var row = Array.isArray(rows) && rows.length ? rows[0] : null;
         if (!row) {
-          status.textContent = "This code isn’t active any more — ask at the front desk.";
+          status.textContent = "This code isn’t active any more. Ask whoever shared it.";
           status.className = "status warn";
           return;
         }
-        gym.textContent = displayGymName(row.name) || "Gym";
-        gym.className = "";
-        document.title = "Join the " + row.name + " × WHAM League";
-        status.textContent = memberLine(row.member_count);
+        if (row.kind && row.kind !== "gym") {
+          /* a trainer's or a Founding Athlete's community, not a gym's league */
+          document.getElementById("eyebrow").textContent = "WHAM Community";
+          document.getElementById("joinTitle").textContent = row.name;
+          document.title = "Join " + row.name + " on WHAM";
+          status.textContent = (row.owner_name ? "Run by " + row.owner_name + " · " : "") + memberLine(row.member_count);
+        } else {
+          gym.textContent = displayGymName(row.name) || "Gym";
+          gym.className = "";
+          document.title = "Join the " + row.name + " × WHAM League";
+          status.textContent = memberLine(row.member_count);
+        }
       })
       .catch(function () {
         status.textContent = "Couldn’t reach WHAM just now — the buttons still work.";

@@ -469,10 +469,14 @@
     p.textContent = body;
     setView("msg");
   }
+  function isCommunity() {
+    return !!(state.info && state.info.kind && state.info.kind !== "gym");
+  }
   function setTitle(node, name) {
     clear(node);
     if (name) {
-      node.textContent = ("The " + displayGymName(name) + " × WHAM League").toUpperCase();
+      /* a community isn't a gym's league (0129 returns kind) */
+      node.textContent = (isCommunity() ? name : "The " + displayGymName(name) + " × WHAM League").toUpperCase();
     } else {
       node.appendChild(document.createTextNode("THE "));
       node.appendChild(el("span", "dim", "GYM"));
@@ -648,7 +652,7 @@
     document.getElementById("tv-meta").textContent = info
       ? [m, memberCount(info.member_count), "getwham.app/league/?g=" + info.slug].filter(Boolean).join(" · ")
       : "";
-    document.title = info ? displayGymName(info.name) + " × WHAM League" : "WHAM League";
+    document.title = info ? (isCommunity() ? info.name + " on WHAM" : displayGymName(info.name) + " × WHAM League") : "WHAM League";
   }
   // Crossfade: paint the next board into the hidden layer, then swap opacity.
   function showBoard(idx, fade) {
@@ -783,7 +787,7 @@
   // ---------- Poster ----------
   function renderPoster(info) {
     setTitle(document.getElementById("o-title"), info && info.name);
-    document.title = info ? displayGymName(info.name) + " × WHAM League — poster" : "WHAM League poster";
+    document.title = info ? (isCommunity() ? info.name + " on WHAM — poster" : displayGymName(info.name) + " × WHAM League — poster") : "WHAM League poster";
     var wrap = document.getElementById("o-qrwrap");
     var codeEl = document.getElementById("o-code");
     if (!code) {
