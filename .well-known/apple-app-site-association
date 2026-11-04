@@ -26,6 +26,13 @@
           },
           {
             "/": "/add/*"
+          },
+          {
+            "/": "/meet",
+            "comment": "Meet in person \u2014 getwham.app/meet/?c=CODE opens WHAM"
+          },
+          {
+            "/": "/meet/*"
           }
         ]
       }
