@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Connect to WHAM</title>
+<meta name="description" content="Let ChatGPT save plans to your WHAM account.">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src 'self'; connect-src https://tzqejczkucsrtgmqgisr.supabase.co; form-action 'none'; base-uri 'none'">
+<link rel="icon" href="/icon.png">
+<style>
+  :root {
+    --bg: #14110D;
+    --bg-elevated: #1C1712;
+    --field: #241E17;
+    --text: #EDE7DA;
+    --text-muted: #A79C8A;
+    --accent: #D1A54B;
+    --accent-ink: #141005;
+    --rule: #332A1E;
+    --error: #E0786A;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card { width: 100%; max-width: 420px; background: var(--bg-elevated); border: 1px solid var(--rule); border-radius: 18px; padding: 28px 22px; }
+  .brand { font-weight: 800; letter-spacing: 0.18em; color: var(--accent); font-size: 13px; }
+  h1 { font-size: 24px; margin: 8px 0 6px; overflow-wrap: anywhere; }
+  p { color: var(--text-muted); font-size: 15px; line-height: 1.45; margin: 0 0 16px; }
+  ul { margin: 0 0 16px; padding-left: 20px; color: var(--text); font-size: 15px; line-height: 1.5; }
+  li { margin-bottom: 6px; }
+  .who { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+  label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-muted); margin: 14px 0 6px; }
+  input { width: 100%; font: inherit; font-size: 16px; color: var(--text); background: var(--field); border: 1px solid var(--rule); border-radius: 12px; padding: 13px 14px; outline: none; }
+  input:focus { border-color: var(--accent); }
+  button { width: 100%; margin-top: 12px; font: inherit; font-weight: 700; font-size: 16px; color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 12px; padding: 14px; cursor: pointer; }
+  button.quiet { color: var(--text); background: transparent; border: 1px solid var(--rule); }
+  button.apple { color: #000; background: #fff; }
+  button:disabled { opacity: 0.55; cursor: default; }
+  .or { text-align: center; color: var(--text-muted); font-size: 13px; margin: 18px 0 0; }
+  .small { font-size: 13px; margin: 16px 0 0; }
+  .link { background: none; border: 0; padding: 0; margin: 0; width: auto; color: var(--accent); font-weight: 600; font-size: 13px; text-decoration: underline; cursor: pointer; }
+  .msg { margin-top: 14px; font-size: 14px; line-height: 1.4; min-height: 1em; }
+  .msg.error { color: var(--error); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand">WHAM</div>
+
+  <section id="loading">
+    <h1>One moment…</h1>
+    <p>Checking the request.</p>
+  </section>
+
+  <section id="signin" class="hidden">
+    <h1>Sign in to WHAM</h1>
+    <p>Use the account you sign in to the WHAM app with.</p>
+    <button id="apple" class="apple" type="button">Sign in with Apple</button>
+    <p class="or">or with email</p>
+    <form id="pwform" novalidate>
+      <label for="email">EMAIL</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">PASSWORD</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button id="pwgo" type="submit">Sign in</button>
+    </form>
+    <div id="signinmsg" class="msg" role="status" aria-live="polite"></div>
+  </section>
+
+  <section id="consent" class="hidden">
+    <h1 id="ask">Connect to your WHAM account?</h1>
+    <p>Signed in as <span id="who" class="who"></span>.</p>
+    <p>It will be able to:</p>
+    <ul>
+      <li>see a summary of your training: your goals, the exercises you've done in the last eight weeks, and your PBs</li>
+      <li>save plans to your WHAM Plans, and update the ones it saved</li>
+    </ul>
+    <p>It can't see your messages, photos, friends or location, and it never sees your password. You can disconnect it in ChatGPT at any time.</p>
+    <button id="allow" type="button">Allow</button>
+    <button id="deny" class="quiet" type="button">Cancel</button>
+    <div id="consentmsg" class="msg" role="status" aria-live="polite"></div>
+    <p class="small">Not you? <button id="switch" class="link" type="button">Use another account</button></p>
+  </section>
+
+  <section id="bad" class="hidden">
+    <h1>This link has expired</h1>
+    <p>Go back to ChatGPT and connect WHAM again.</p>
+  </section>
+
+  <section id="framed" class="hidden">
+    <h1>Open this page on its own</h1>
+    <p>For your safety, WHAM won't ask you to sign in inside another page.</p>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.1/dist/umd/supabase.js" integrity="sha384-0x8XPoHt08aHZj+RHs8ojmhZ5IDsTLjPgblgWdriayWriqv9dic3Vkv1K2+UqgZV" crossorigin="anonymous"></script>
+<script src="consent.js"></script>
+</body>
+</html>
