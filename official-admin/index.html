@@ -74,7 +74,11 @@
   </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- pinned to one release (2.118.0, published 2026-10-15) and checked by hash: a
+     changed file never runs. Moving to another version needs its own hash. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"
+        integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK"
+        crossorigin="anonymous"></script>
 <script>
 (function () {
   "use strict";
@@ -153,9 +157,18 @@
       img.src = url;
     });
   }
+  // official_post's own rules (0138), checked before a photo is uploaded:
+  // the title and text are trimmed of spaces and counted in characters
+  function chars(s) { return Array.from(s.replace(/^ +| +$/g, "")).length; }
+  function checkPost(kind, title, text, file) {
+    if (!KINDS[kind]) return "Choose a kind.";
+    var t = chars(title), b = chars(text);
+    if (t < 1 || t > 80 || b < 1 || b > 600) return friendly({ message: "bad_input" });
+    if (file && IMAGE_TYPES.indexOf(file.type) < 0) return friendly({ message: "bad_media" });
+    if (file && file.size > MAX_IMAGE) return "That photo is over 5 MB. Make it smaller first.";
+    return null;
+  }
   async function uploadImage(file) {
-    if (IMAGE_TYPES.indexOf(file.type) < 0) throw new Error("bad_media");
-    if (file.size > MAX_IMAGE) throw new Error("That photo is over 5 MB. Make it smaller first.");
     var sess = await sb.auth.getSession();
     var user = sess.data.session && sess.data.session.user;
     if (!user) throw new Error("Signed out. Sign in again.");
@@ -193,10 +206,14 @@
     f.appendChild(row);
     f.addEventListener("submit", async function (e) {
       e.preventDefault();
+      var file = photo.files && photo.files[0] ? photo.files[0] : null;
+      var problem = checkPost(kind.value, title.value, body.value, file);
+      if (problem) { setStatus(problem, true); return; }
       if (!confirm("Post this to members' feeds as WHAM?")) return;
       go.disabled = true;
+      var media = null;
       try {
-        var media = photo.files && photo.files[0] ? await uploadImage(photo.files[0]) : null;
+        media = file ? await uploadImage(file) : null;
         await call("official_post", {
           p_kind: kind.value,
           p_title: title.value,
@@ -210,6 +227,12 @@
         f.reset();
         count.textContent = "0 / 600";
       } catch (err) {
+        // the server refused the post (its error has a code): the photo
+        // already went up, so take it down again. A network failure may have
+        // posted it after all, so its photo stays.
+        if (media && err && err.code) {
+          try { await sb.storage.from("post-media").remove([media.path]); } catch (_) { /* unread either way */ }
+        }
         setStatus(friendly(err), true);
       } finally {
         go.disabled = false;
