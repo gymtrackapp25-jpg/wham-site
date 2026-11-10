@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>WHAM posts admin</title>
+<!-- never inside a frame (no response headers on this host, so a frame-buster) -->
+<script>if (window.top !== window.self) document.documentElement.style.display = "none";</script>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#14110D">
 <style>
@@ -277,7 +279,9 @@
     if (!session) { shownFor = null; $("who").textContent = ""; show("signin"); return; }
     if (shownFor === session.user.id) return;
     var res = await sb.rpc("wham_is_staff");
-    if (res.error || !res.data) { show("notstaff"); return; }
+    /* a failed check (network) isn't "not staff": say so and let a reload retry */
+    if (res.error) { show("signin"); $("signin-status").textContent = "Couldn't check your account. Reload to try again."; $("signin-status").className = "status err"; return; }
+    if (!res.data) { show("notstaff"); return; }
     shownFor = session.user.id;
     $("who").textContent = session.user.email || "";
     show("staff");
