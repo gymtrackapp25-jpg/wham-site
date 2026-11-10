@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WHAM posts admin</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14110D">
+<style>
+  :root { --bg:#14110D; --raised:#1C1712; --text:#EDE7DA; --muted:#A79C8A; --accent:#D1A54B; --rule:#332A1E; --danger:#E0735A; --ok:#7FBF8E;
+    --sans:-apple-system,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif; --serif:ui-serif,"Iowan Old Style",Palatino,Georgia,serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 var(--sans); padding:24px 16px 64px; }
+  main { max-width:860px; margin:0 auto; }
+  h1 { font:500 30px/1.2 var(--serif); margin:0 0 4px; }
+  h2 { font:600 18px/1.3 var(--sans); margin:0 0 12px; }
+  .muted { color:var(--muted); font-size:14px; }
+  a { color:var(--accent); }
+  .card { background:var(--raised); border:1px solid var(--rule); border-radius:14px; padding:16px; margin-bottom:12px; overflow-wrap:anywhere; }
+  label { display:block; font-weight:600; font-size:14px; margin:10px 0 4px; }
+  input, textarea, select { width:100%; background:var(--bg); color:var(--text); border:1px solid var(--rule); border-radius:10px; padding:10px 12px; font:16px var(--sans); min-height:44px; }
+  textarea { min-height:140px; resize:vertical; }
+  button { background:var(--accent); color:#14110D; border:0; border-radius:10px; padding:10px 14px; font:600 15px var(--sans); cursor:pointer; min-height:44px; }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--rule); }
+  button.danger { background:transparent; color:var(--danger); border:1px solid var(--danger); }
+  button[disabled] { opacity:.5; cursor:progress; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; }
+  .tabs button[aria-selected=true] { background:var(--accent); color:#14110D; }
+  .tabs button { background:transparent; color:var(--text); border:1px solid var(--rule); }
+  .tag { display:inline-block; font-size:12px; font-weight:600; letter-spacing:.04em; padding:2px 8px; border-radius:99px; border:1px solid var(--rule); color:var(--muted); margin-left:6px; }
+  .why { white-space:pre-wrap; margin:10px 0 0; }
+  .count { text-align:right; font-size:13px; color:var(--muted); margin-top:4px; }
+  .status { min-height:22px; font-size:14px; margin:10px 0; }
+  .status.err { color:var(--danger); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>WHAM posts</h1>
+  <p class="muted" id="who"></p>
+
+  <p id="boot" class="muted">Loading…</p>
+
+  <section id="signin" hidden class="card">
+    <h2>Sign in</h2>
+    <p class="muted">WHAM staff only. Everything here is checked on the server.</p>
+    <form id="signin-form">
+      <label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label><input id="password" type="password" autocomplete="current-password">
+      <div class="row"><button id="signin-btn" type="submit">Sign in</button><button id="link-btn" class="ghost" type="button">Email me a link</button></div>
+    </form>
+    <p id="signin-status" class="status" role="status"></p>
+  </section>
+
+  <section id="notstaff" hidden class="card">
+    <h2>Not a staff account</h2>
+    <p class="muted">This account doesn't have access.</p>
+    <button class="ghost" data-signout>Sign out</button>
+  </section>
+
+  <section id="staff" hidden>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="compose" aria-selected="true">New post</button>
+      <button role="tab" data-tab="posts" aria-selected="false">Posts</button>
+      <button role="tab" data-tab="comments" aria-selected="false">Comments</button>
+      <button class="ghost" data-signout>Sign out</button>
+    </div>
+    <p id="status" class="status" role="status"></p>
+    <div id="view"></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  "use strict";
+  // Public by design: only WHAM staff can post, and the database checks it
+  // (0138 official_post and wham_staff). Posts appear as the WHAM account.
+  var SUPABASE_URL = "https://tzqejczkucsrtgmqgisr.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cWVqY3prdWNzcnRnbXFnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzQ3NTUsImV4cCI6MjA5OTU1MDc1NX0.qCFP3iWMHhwwG03HRLq9VbfiUQZ-kxFO-OGp1J1Fn-o";
+  var REDIRECT = "https://getwham.app/official-admin/";
+  var $ = function (id) { return document.getElementById(id); };
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+  });
+  var tab = "compose";
+  var KINDS = { challenge: "Weekly challenge", tip: "Form tip", news: "Feature news", spotlight: "Member spotlight" };
+  var IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  var MAX_IMAGE = 5 * 1024 * 1024; // Supabase Free plan: keep uploads small
+
+  // every value goes in through textContent, so text can't become markup
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function btn(label, cls, fn) {
+    var b = el("button", cls, label);
+    b.type = "button";
+    b.addEventListener("click", fn);
+    return b;
+  }
+  function setStatus(msg, err) { $("status").textContent = msg || ""; $("status").className = "status" + (err ? " err" : ""); }
+  function day(t) { return t ? new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""; }
+  function friendly(e) {
+    var m = (e && e.message) || "Something went wrong";
+    if (/not_staff|permission denied/.test(m)) return "This account doesn't have access.";
+    if (/no_official_profile/.test(m)) return "The WHAM account isn't set up yet (supabase/official_setup.sql).";
+    if (/no_such_handle/.test(m)) return "No WHAM account has that username.";
+    if (/spotlight_not_allowed/.test(m)) return "That member can't be in a spotlight.";
+    if (/bad_media/.test(m)) return "That photo couldn't be used. Use a JPEG, PNG or WebP.";
+    if (/bad_input/.test(m)) return "Give it a title (up to 80 characters) and some text (up to 600).";
+    if (/Could not find|does not exist/.test(m)) return "A migration is missing: " + m;
+    return m;
+  }
+  async function call(name, args, done) {
+    setStatus("Working…");
+    var res = await sb.rpc(name, args || {});
+    if (res.error) { setStatus(friendly(res.error), true); throw res.error; }
+    setStatus(done || "");
+    return res.data;
+  }
+
+  // only an exact true means this call removed it (0138 returns false when it
+  // is already gone or the caller isn't allowed)
+  async function removeThen(name, id, done, refresh) {
+    try {
+      var ok = await call(name, { p_id: id });
+      await refresh();
+      if (ok === true) setStatus(done);
+      else setStatus("Already gone or not allowed", true);
+    } catch (err) { /* call() already showed the reason */ }
+  }
+
+  // --------------------------------------------------------------- new post
+  function field(form, id, label, input, hint) {
+    var l = el("label", "", label); l.htmlFor = id; form.appendChild(l);
+    input.id = id; form.appendChild(input);
+    if (hint) form.appendChild(el("div", "muted", hint));
+    return input;
+  }
+  function imageSize(file) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () { resolve({ w: img.naturalWidth || null, h: img.naturalHeight || null }); URL.revokeObjectURL(url); };
+      img.onerror = function () { resolve({ w: null, h: null }); URL.revokeObjectURL(url); };
+      img.src = url;
+    });
+  }
+  async function uploadImage(file) {
+    if (IMAGE_TYPES.indexOf(file.type) < 0) throw new Error("bad_media");
+    if (file.size > MAX_IMAGE) throw new Error("That photo is over 5 MB. Make it smaller first.");
+    var sess = await sb.auth.getSession();
+    var user = sess.data.session && sess.data.session.user;
+    if (!user) throw new Error("Signed out. Sign in again.");
+    var dims = await imageSize(file);
+    var ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    // the bucket only lets you write into your own folder; official_post checks the official/ part
+    var path = user.id + "/official/" + crypto.randomUUID() + "." + ext;
+    setStatus("Uploading the photo…");
+    var res = await sb.storage.from("post-media").upload(path, file, { contentType: file.type, upsert: false });
+    if (res.error) throw res.error;
+    return { path: path, w: dims.w, h: dims.h };
+  }
+  function showCompose() {
+    var view = $("view"); view.textContent = "";
+    var f = el("form", "card");
+    f.appendChild(el("h2", "", "Post as WHAM"));
+    f.appendChild(el("p", "muted", "It shows in members' feeds with the verified tick: in quiet feeds, and one recent post in busy ones. It's never pushed. Members can react and comment."));
+    var kind = el("select");
+    Object.keys(KINDS).forEach(function (k) { var o = el("option", "", KINDS[k]); o.value = k; kind.appendChild(o); });
+    field(f, "kind", "Kind", kind);
+    var title = el("input"); title.maxLength = 80; title.required = true;
+    field(f, "title", "Title", title, "Up to 80 characters.");
+    var body = el("textarea"); body.maxLength = 600; body.required = true;
+    field(f, "body", "Text", body);
+    var count = el("div", "count", "0 / 600");
+    f.appendChild(count);
+    body.addEventListener("input", function () { count.textContent = body.value.length + " / 600"; });
+    var handle = el("input"); handle.placeholder = "@username"; handle.autocomplete = "off";
+    field(f, "handle", "Member in the spotlight (optional)", handle, "Their profile gets a button on the post.");
+    var photo = el("input"); photo.type = "file"; photo.accept = IMAGE_TYPES.join(",");
+    field(f, "photo", "Photo (optional)", photo, "JPEG, PNG or WebP, up to 5 MB.");
+    var row = el("div", "row");
+    var go = el("button", "", "Post"); go.type = "submit";
+    row.appendChild(go);
+    f.appendChild(row);
+    f.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (!confirm("Post this to members' feeds as WHAM?")) return;
+      go.disabled = true;
+      try {
+        var media = photo.files && photo.files[0] ? await uploadImage(photo.files[0]) : null;
+        await call("official_post", {
+          p_kind: kind.value,
+          p_title: title.value,
+          p_text: body.value,
+          p_media_path: media ? media.path : null,
+          p_media_type: media ? "image" : null,
+          p_media_w: media ? media.w : null,
+          p_media_h: media ? media.h : null,
+          p_spotlight_handle: handle.value.trim() || null
+        }, "Posted. It's in members' feeds now.");
+        f.reset();
+        count.textContent = "0 / 600";
+      } catch (err) {
+        setStatus(friendly(err), true);
+      } finally {
+        go.disabled = false;
+      }
+    });
+    view.appendChild(f);
+    return Promise.resolve();
+  }
+
+  // --------------------------------------------------------------- posts
+  async function showPosts() {
+    var view = $("view"); view.textContent = "";
+    var rows = await call("official_posts_list", { p_limit: 50 });
+    if (!rows.length) { view.appendChild(el("p", "muted", "No WHAM posts yet.")); return; }
+    rows.forEach(function (p) {
+      var c = el("div", "card");
+      var h = el("h2", "", p.title);
+      h.appendChild(el("span", "tag", KINDS[p.kind] || p.kind));
+      c.appendChild(h);
+      c.appendChild(el("div", "muted", day(p.created_at) + " · " + p.reactions + " reactions · " + p.comments + " comments" + (p.media_path ? " · photo" : "")));
+      c.appendChild(el("p", "why", p.body));
+      var row = el("div", "row");
+      row.appendChild(btn("Take down", "danger", function () {
+        if (!confirm("Take \"" + p.title + "\" down? Its reactions and comments go with it.")) return;
+        removeThen("official_post_remove", p.id, "Taken down", showPosts);
+      }));
+      c.appendChild(row);
+      view.appendChild(c);
+    });
+  }
+
+  // --------------------------------------------------------------- comments
+  async function showComments() {
+    var view = $("view"); view.textContent = "";
+    var rows = await call("official_comments_list", { p_limit: 100 });
+    if (!rows.length) { view.appendChild(el("p", "muted", "No comments on WHAM posts yet.")); return; }
+    rows.forEach(function (r) {
+      var c = el("div", "card");
+      c.appendChild(el("div", "muted", "@" + r.author_handle + " on \"" + r.post_title + "\" · " + day(r.created_at)));
+      c.appendChild(el("p", "why", r.body));
+      var row = el("div", "row");
+      row.appendChild(btn("Remove", "danger", function () {
+        if (!confirm("Remove this comment by @" + r.author_handle + "?")) return;
+        removeThen("official_comment_remove", r.id, "Removed", showComments);
+      }));
+      c.appendChild(row);
+      view.appendChild(c);
+    });
+  }
+
+  var VIEWS = { compose: showCompose, posts: showPosts, comments: showComments };
+  function open(name) {
+    tab = name;
+    setStatus("");
+    document.querySelectorAll("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === name)); });
+    VIEWS[name]().catch(function () {});
+  }
+  document.querySelectorAll("[data-tab]").forEach(function (b) { b.addEventListener("click", function () { open(b.dataset.tab); }); });
+
+  // --------------------------------------------------------------- sign-in
+  function show(id) {
+    ["signin", "notstaff", "staff"].forEach(function (s) { $(s).hidden = s !== id; });
+    $("boot").hidden = true;
+  }
+  var shownFor = null;
+  async function route(session) {
+    if (!session) { shownFor = null; $("who").textContent = ""; show("signin"); return; }
+    if (shownFor === session.user.id) return;
+    var res = await sb.rpc("wham_is_staff");
+    if (res.error || !res.data) { show("notstaff"); return; }
+    shownFor = session.user.id;
+    $("who").textContent = session.user.email || "";
+    show("staff");
+    open(tab);
+  }
+  $("signin-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var st = $("signin-status");
+    $("signin-btn").disabled = true; st.textContent = "Signing in…"; st.className = "status";
+    var res = await sb.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
+    $("signin-btn").disabled = false;
+    if (res.error) { st.textContent = res.error.message; st.className = "status err"; return; }
+    st.textContent = "";
+    route(res.data.session);
+  });
+  $("link-btn").addEventListener("click", async function () {
+    var st = $("signin-status"), email = $("email").value.trim();
+    if (!email) { st.textContent = "Enter your email first."; st.className = "status err"; return; }
+    var res = await sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: REDIRECT } });
+    st.textContent = res.error ? res.error.message : "Check your email for a sign-in link, then open it on this device.";
+    st.className = "status" + (res.error ? " err" : "");
+  });
+  document.querySelectorAll("[data-signout]").forEach(function (b) {
+    b.addEventListener("click", async function () { await sb.auth.signOut(); route(null); });
+  });
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { route(session); }, 0); });
+  sb.auth.getSession().then(function (r) { route(r.data.session); });
+})();
+</script>
+</body>
+</html>
