@@ -231,7 +231,7 @@
 <div class="page">
   <div class="eyebrow">WHAM</div>
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated October 19, 2026</p>
+  <p class="updated">Last updated November 17, 2026</p>
 
   <dl class="meta-panel">
     <dt>Data controller</dt>
@@ -251,6 +251,7 @@
       <li><a href="#third-party">Third-party services</a></li>
       <li><a href="#subscriptions">Subscriptions and advertising</a></li>
       <li><a href="#moderation">Community content and moderation</a></li>
+      <li><a href="#chatgpt">Using WHAM in ChatGPT</a></li>
       <li><a href="#rights">Your rights and controls</a></li>
       <li><a href="#children">Children's privacy</a></li>
       <li><a href="#changes">Changes to this policy</a></li>
@@ -367,6 +368,8 @@
         <li>Sentry (crash and error reporting; see <a href="#collect">Diagnostics and product analytics</a>)</li>
         <li>PostHog (product usage analytics; see <a href="#collect">Diagnostics and product analytics</a>)</li>
         <li>Expo/EAS (app build and update delivery infrastructure)</li>
+        <li>OpenAI (only if you use WHAM in ChatGPT — see <a href="#chatgpt">Using WHAM in ChatGPT</a>)</li>
+        <li>Fly.io (hosts the server that WHAM in ChatGPT talks to, in London)</li>
       </ul>
       <p>Each of these providers only receives the data necessary to perform their function and is bound by their own privacy and security terms.</p>
     </section>
@@ -404,11 +407,43 @@
       <p>To have your application deleted sooner, email the address in the Contact section below.</p>
     </section>
 
+    <section id="chatgpt">
+      <h2><span class="num">06b</span> Using WHAM in ChatGPT</h2>
+      <p>WHAM has an optional app inside ChatGPT that builds workouts and training splits. You can use it without a WHAM account. Connecting your account lets you save plans to WHAM and lets ChatGPT read a summary of your training.</p>
+      <h3>What WHAM receives from ChatGPT</h3>
+      <ul>
+        <li><strong>Your plan request:</strong> your goal, how long you have, the equipment you can use, how many days you train, your experience, anything you want to avoid, and whether you mentioned pain, an injury, pregnancy or a medical condition (only so the plan stays light and tells you to check with a professional). We don't receive the rest of your conversation.</li>
+        <li><strong>An anonymous identifier from ChatGPT.</strong> We use it only to limit how many plans one person can make in a day. ChatGPT also attaches general details such as your language and approximate location to each request; WHAM doesn't use or store them.</li>
+        <li><strong>If you connect your WHAM account:</strong> proof that you signed in, which tells us your WHAM account. You sign in on getwham.app, never in the chat, and ChatGPT never sees your password.</li>
+      </ul>
+      <h3>What WHAM sends back to ChatGPT</h3>
+      <ul>
+        <li>The plans it builds: exercises, sets and reps, warm-up and stretches.</li>
+        <li>Only if you're connected and ask for them: the plans you've saved from ChatGPT, and a summary of your last eight weeks of training (your active goals, weekly totals, a summary for each exercise, and your lifting personal bests). It never sends your friends, posts, photos, health data, location or contacts.</li>
+      </ul>
+      <p>Whatever WHAM sends to ChatGPT becomes part of your ChatGPT conversation, which OpenAI handles under <a href="https://openai.com/policies/privacy-policy/">its own privacy policy</a>.</p>
+      <h3>What we keep, and for how long</h3>
+      <ul>
+        <li><strong>Plan previews</strong> are held in our server's memory for up to 30 minutes, so you can change or save them, and are never written to disk.</li>
+        <li><strong>Plans you save</strong> are stored in your WHAM account and appear in Plans in the app. We also keep a record of each save (when it happened, which plan, and whether it worked), but not the plan itself. Both stay until you delete your WHAM account. Removing a plan in the app takes it out of the app; to have the saved copy removed from our servers sooner, email us.</li>
+        <li><strong>Public links</strong> (only made when you press Publish a public link and confirm) show the plan to anyone with the link for 30 days, then are deleted. They leave out coaching notes and anything about you.</li>
+        <li><strong>Limits on use</strong> are counted under a scrambled code that changes every day and is held only in memory. We don't store your IP address with your plans.</li>
+        <li><strong>Server logs</strong> record each request's time, type and outcome and whether you were connected, not the plans or your training. Our host, Fly.io, keeps them for a limited time.</li>
+      </ul>
+      <h3>Your controls</h3>
+      <ul>
+        <li>Disconnect WHAM at any time in ChatGPT's settings. ChatGPT can then no longer save to your account or read your training.</li>
+        <li>Deleting your WHAM account (Settings → Account → Delete account) also deletes everything you saved from ChatGPT.</li>
+        <li>To have a public link taken down before it expires, or for anything else, email the address in the Contact section below.</li>
+      </ul>
+    </section>
+
     <section id="rights">
       <h2><span class="num">07</span> Your rights and controls</h2>
       <ul>
         <li>You can edit or delete workout data within the app at any time.</li>
         <li>You can remove friend connections and control what's visible on your feed and leaderboards.</li>
+        <li>You can disconnect WHAM from ChatGPT at any time in ChatGPT's settings (see <a href="#chatgpt">Using WHAM in ChatGPT</a>).</li>
         <li>You can leave a gym league, or keep yourself off its public TV page, at any time from Settings → Leagues.</li>
         <li>You can delete your account at any time from within the app (Settings → Account → Delete account). This immediately and permanently removes your account, workout history, and social connections from our systems — there's no waiting period and no need to contact support.</li>
         <li>You can request a copy of your data by contacting us at the address above.</li>
