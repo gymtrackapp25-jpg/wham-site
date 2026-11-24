@@ -40,6 +40,13 @@
           },
           {
             "/": "/c/*"
+          },
+          {
+            "/": "/together",
+            "comment": "Programme invite: getwham.app/together/?c=CODE opens WHAM"
+          },
+          {
+            "/": "/together/*"
           }
         ]
       }
